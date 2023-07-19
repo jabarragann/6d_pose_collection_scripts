@@ -40,7 +40,7 @@ class ImageSub:
 
 @dataclass
 class SimulationInterface:
-    sim_manager: SimulationManager = field(default=SimulationManager("Collect6dpose"))
+    sim_manager: SimulationManager = field(default_factory=lambda :SimulationManager("Collect6dpose"))
 
     def __post_init__(self):
         self.img_subs = ImageSub()
@@ -83,7 +83,14 @@ class SimulationInterface:
         T_LN_CV2 = F.dot(T_LN)
 
         return T_LN_CV2 
-
+    
+    def generate_dataset_sample(self) -> DatasetSample:
+        img = self.img_subs.left_frame
+        # Get extrinsics
+        T_LN_CV2 = self.get_needle_extrinsics() # Needle to CamL
+        # Get intrinsics
+        K = self.get_intrinsics()
+        return DatasetSample(img,np.zeros((40,40)), T_LN_CV2, K)
 
 
 if __name__ == "__main__":
