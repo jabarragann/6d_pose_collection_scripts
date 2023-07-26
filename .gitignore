@@ -3,3 +3,6 @@
 __pycache__
 test_d1
 *yaml
+
+.idea
+.DS_Store
