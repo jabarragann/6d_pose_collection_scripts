@@ -1,0 +1,27 @@
+<launch>
+    <node pkg="rosbag" type="record" name="recorder" output="screen" 
+            args="-O    /ssd/test.bag 
+                  -b    4096
+                        /ambf/env/Entry1/State
+                        /ambf/env/Entry2/State
+                        /ambf/env/Entry3/State
+                        /ambf/env/Entry4/State
+                        /ambf/env/Exit1/State
+                        /ambf/env/Exit2/State
+                        /ambf/env/Exit3/State
+                        /ambf/env/Exit4/State
+                        /ambf/env/CameraFrame/State
+                        /ambf/env/cameras/cameraL/State
+                        /ambf/env/cameras/cameraR/State
+                        /ambf/env/Needle/State
+                        /ecm/setpoint_js
+                        /psm1/setpoint_js
+                        /psm2/setpoint_js
+                        /psm1/jaw/setpoint_js
+                        /psm2/jaw/setpoint_js
+                        /ambf/env/psm1/toolyawlink/State
+                        /ambf/env/psm2/toolyawlink/State
+                        /ambf/env/psm1/baselink/State
+                        /ambf/env/psm2/baselink/State"/>
+
+</launch>
