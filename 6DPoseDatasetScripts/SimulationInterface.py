@@ -23,8 +23,14 @@ class ImageSub:
         self.img_subs = rospy.Subscriber(
             "/ambf/env/cameras/cameraL/ImageData", Image, self.left_callback
         )
+        self.seg_img_subs = rospy.Subscriber(
+            "/ambf/env/cameras/cameraL2/ImageData", Image, self.seg_left_callback
+        )
         self.left_frame = None
         self.left_ts = None
+        self.seg_left_frame = None
+        self.seg_left_ts = None
+
         # Wait a until subscribers and publishers are ready
         rospy.sleep(0.5)
 
@@ -35,6 +41,15 @@ class ImageSub:
             self.left_ts = msg.header.stamp
         except CvBridgeError as e:
             print(e)
+
+    def seg_left_callback(self, msg):
+            try:
+                cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+                self.seg_left_frame = cv2_img
+                self.seg_left_ts = msg.header.stamp
+            except CvBridgeError as e:
+                print(e)
+
 
 
 
@@ -86,11 +101,12 @@ class SimulationInterface:
     
     def generate_dataset_sample(self) -> DatasetSample:
         img = self.img_subs.left_frame
+        seg_img = self.img_subs.seg_left_frame
         # Get extrinsics
         T_LN_CV2 = self.get_needle_extrinsics() # Needle to CamL
         # Get intrinsics
         K = self.get_intrinsics()
-        return DatasetSample(img,np.zeros((40,40)), T_LN_CV2, K)
+        return DatasetSample(img,seg_img, T_LN_CV2, K)
 
 
 if __name__ == "__main__":
@@ -105,7 +121,7 @@ if __name__ == "__main__":
 
     # needle_salient points
     theta = np.linspace(np.pi / 3, np.pi, num=8).reshape((-1, 1))
-    radius = 0.1018
+    radius = 0.1018 / 10
     needle_salient = radius * np.hstack((np.cos(theta), np.sin(theta), theta * 0))
 
     # Project points

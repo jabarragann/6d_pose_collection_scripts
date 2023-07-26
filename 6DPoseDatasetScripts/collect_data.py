@@ -4,7 +4,9 @@ from SimulationInterface import SimulationInterface
 import rospy
 import time
 
-
+# Config file
+## path
+## segmentation camera
 
 if __name__ =="__main__":
 
@@ -33,3 +35,5 @@ if __name__ =="__main__":
             saver.save_sample(sample)
             print(f" Saved sample: {time.time()-last_time}")
             last_time = time.time()
+    
+    saver.close()
