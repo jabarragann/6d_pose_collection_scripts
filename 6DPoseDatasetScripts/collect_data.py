@@ -15,16 +15,16 @@ if __name__ =="__main__":
 
     path = Path(path).resolve()
 
-    ans = input(f"Saving dataset in {path}? (y/n) ")
+    # ans = input(f"Saving dataset in {path}? (y/n) ")
 
-    if ans != "y":
-        print("exiting ...")
-        exit()
+    # if ans != "y":
+    #     print("exiting ...")
+    #     exit()
 
     sim_interface = SimulationInterface() 
     saver = SampleSaver(root=path)
 
-    input("Start rosbag and press enter to start recording data ... ")
+    # input("Start rosbag and press enter to start recording data ... ")
 
     sample_every = 1.5
     last_time =time.time()+sample_every 

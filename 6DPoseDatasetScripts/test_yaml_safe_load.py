@@ -20,6 +20,8 @@ with open('stack.yaml', 'w') as f:
     str_repr = np.array2string(arr_1d, separator=',',max_line_width=200, precision=8)[1:-1]
     print(str_repr,"hello")
     data = {"0000":[{ "cam_R_m2c": str_repr }]}
+    str_repr = np.array2string(arr_1d+0.5, separator=',',max_line_width=200, precision=8)[1:-1]
+    data["0001"] = [{ "cam_R_m2c":str_repr}]
 
     yaml.dump(data, f)
 

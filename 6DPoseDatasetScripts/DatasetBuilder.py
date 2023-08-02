@@ -111,16 +111,21 @@ class YamlSaver(ABC):
         if file_name.exists():
 
             msg = f"GT file: {file_name} already exists. Do you want to overwrite it? (y/n)"
-            if (input(msg) != "y"):
-                print("exiting ...")
-                exit() 
+            # if (input(msg) != "y"):
+            #     print("exiting ...")
+            #     exit() 
 
-        self.file_handle = open(file_name, "w") 
+        self.file_handle = open(file_name, "wt", encoding="utf-8") 
     
     def save_sample(self, step:int, data: DatasetSample): 
-        extrinsic_str = self.numpy_fmt.convert_to_yaml(data.extrinsic_matrix)
-        data_dict = {f"{step:05d}":[{ "model2cam": extrinsic_str}]}
-        yaml.dump(data_dict, self.file_handle)
+        rot_str = self.numpy_fmt.convert_to_yaml(data.extrinsic_matrix[:3,:3])
+        t_str = self.numpy_fmt.convert_to_yaml(data.extrinsic_matrix[:3,3])
+        print(f"step: {step}")
+        print(rot_str)
+        data_dict = {f"{step:05d}":{ "rot_model2cam": rot_str, "t_model2cam": t_str}}
+        # yaml.dump(data_dict, self.file_handle,Dumper= yaml.SafeDumper,default_flow_style=False, default_style='\"', width=200)
+        # yaml.dump(data_dict, self.file_handle,Dumper= yaml.SafeDumper, line_break=None, width=200)
+        yaml.dump(data_dict, self.file_handle,Dumper= yaml.SafeDumper,default_style="", line_break=None, width=200)
 
         # self.file_handle.write(: \n")
         self.file_handle.flush() 
