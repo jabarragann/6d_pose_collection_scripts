@@ -7,7 +7,7 @@ from ambf6dpose import DatasetReader, SampleSaver
 @click.command()
 @click.option("--path", required=True, help="Path to save dataset")
 def generate_dataset(path: str):
-    """Generate test images by project needle 3d point to the image plane. This script can be used
+    """Generate test images by projecting needle 3d points to the image plane. This script can be used
     to visualy inspect the correctness of the intrinsic and extrinsic matrices
     """
     path = Path(path).resolve()
