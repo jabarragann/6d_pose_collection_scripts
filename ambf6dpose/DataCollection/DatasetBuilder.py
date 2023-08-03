@@ -170,10 +170,10 @@ class YamlSaver(ABC):
         self.numpy_fmt = NumpyStrFormatter()
         file_name = self.root / YamlFiles.EXTRINSIC.value
         if file_name.exists():
-            msg = f"GT file: {file_name} already exists. Do you want to overwrite it? (y/n)"
-            # if (input(msg) != "y"):
-            #     print("exiting ...")
-            #     exit()
+            msg = f"GT file: {file_name} already exists. Do you want to overwrite it? (y/n) "
+            if input(msg) != "y":
+                print("exiting ...")
+                exit()
 
         self.file_handle = open(file_name, "wt", encoding="utf-8")
 

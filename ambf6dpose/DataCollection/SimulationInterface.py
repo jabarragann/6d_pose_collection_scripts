@@ -27,9 +27,9 @@ class ImageSub:
         self.seg_img_subs = rospy.Subscriber(
             "/ambf/env/cameras/cameraL2/ImageData", Image, self.seg_left_callback
         )
-        self.left_frame = None
+        self.left_frame = np.zeros((640, 480, 3), dtype=np.uint8)
         self.left_ts = None
-        self.seg_left_frame = None
+        self.seg_left_frame = np.zeros((640, 480, 3), dtype=np.uint8)
         self.seg_left_ts = None
 
         # Wait a until subscribers and publishers are ready

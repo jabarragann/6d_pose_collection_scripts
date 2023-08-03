@@ -1,4 +1,5 @@
 from pathlib import Path
+import click
 from ambf6dpose import SimulationInterface, SampleSaver
 import rospy
 import time
@@ -7,32 +8,32 @@ import time
 ## path
 ## segmentation camera
 
-if __name__ =="__main__":
 
-    # path = input("Add path for dataset: ")
-    path = "./test_d2"
+@click.command()
+@click.option("--path", required=True, help="Path to save dataset")
+@click.option("--sample_time", default=1.5, help="Sample every n seconds")
+def collect_data(path: str, sample_time: float) -> None:
+    """6D pose data collection script.
+    Instructions: (1) Run ambf simulation (2) run recorded motions (3) run collection script.
 
+    """
     path = Path(path).resolve()
-
-    # ans = input(f"Saving dataset in {path}? (y/n) ")
-
-    # if ans != "y":
-    #     print("exiting ...")
-    #     exit()
-
-    sim_interface = SimulationInterface() 
+    sim_interface = SimulationInterface()
     saver = SampleSaver(root=path)
 
-    # input("Start rosbag and press enter to start recording data ... ")
+    last_time = time.time() + sample_time
 
-    sample_every = 1.5
-    last_time =time.time()+sample_every 
-
-    while(not rospy.is_shutdown()):
-        if time.time() - last_time > sample_every:
+    count = 0
+    while not rospy.is_shutdown():
+        if time.time() - last_time > sample_time:
             sample = sim_interface.generate_dataset_sample()
             saver.save_sample(sample)
-            print(f" Saved sample: {time.time()-last_time}")
+            print(f" Sample: {count} Time: {time.time()-last_time:0.3f}")
             last_time = time.time()
-    
+            count +=1
+
     saver.close()
+
+
+if __name__ == "__main__":
+    collect_data()
