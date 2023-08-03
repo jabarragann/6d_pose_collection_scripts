@@ -1,5 +1,6 @@
 *.bag
 .vscode
 __pycache__
-test_d1
+test_d*
 *yaml
+*.egg-info

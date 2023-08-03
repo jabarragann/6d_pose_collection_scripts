@@ -1,4 +1,4 @@
-from DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
 import cv2
 import numpy as np
 from numpy.linalg import inv
@@ -55,7 +55,7 @@ class ImageSub:
 
 @dataclass
 class SimulationInterface:
-    sim_manager: SimulationManager = field(default_factory=lambda :SimulationManager("Collect6dpose"))
+    sim_manager: SimulationManager = field(default_factory=lambda : SimulationManager("Collect6dpose"))
 
     def __post_init__(self):
         self.img_subs = ImageSub()

@@ -1,6 +1,5 @@
 from pathlib import Path
-from DatasetBuilder import  SampleSaver
-from SimulationInterface import SimulationInterface
+from ambf6dpose import SimulationInterface, SampleSaver
 import rospy
 import time
 
@@ -11,7 +10,7 @@ import time
 if __name__ =="__main__":
 
     # path = input("Add path for dataset: ")
-    path = "./test_d1"
+    path = "./test_d2"
 
     path = Path(path).resolve()
 
