@@ -4,3 +4,9 @@ __pycache__
 test_d*
 *yaml
 *.egg-info
+# MacOS
+.idea
+.DS_Store
+
+
+
