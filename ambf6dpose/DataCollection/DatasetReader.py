@@ -58,14 +58,33 @@ class DatasetReader:
 
     def __post_init__(self):
         self.__dict_paths: Dict[ImgDirs, Path] = {}
-
         self.__init_dict_paths()
+        self.__internal_idx: int = 0
+        self.__dataset_size: int = self.calculate_size()
 
         with open(self.root / YamlFiles.EXTRINSIC.value, "r") as f:
             self.__extrinsic_yaml = yaml.load(f, Loader=yaml.FullLoader)
 
         with open(self.root / YamlFiles.INTRINSIC.value, "r") as f:
             self.__intrinsic_yaml = yaml.load(f, Loader=yaml.FullLoader)
+
+    def __len__(self) -> int:
+        return self.__dataset_size
+
+    def calculate_size(self) -> int:
+        return len(list(self.__dict_paths[ImgDirs.RAW].glob("*.png")))
+
+    def __iter__(self):
+        self.__internal_idx = 0
+        return self
+
+    def __next__(self):
+        if self.__internal_idx < self.__dataset_size:
+            sample = self[self.__internal_idx]
+            self.__internal_idx += 1
+            return sample
+        else:
+            raise StopIteration
 
     def __init_dict_paths(self):
         for img_dir in ImgDirs:

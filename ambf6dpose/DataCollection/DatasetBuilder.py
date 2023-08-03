@@ -41,7 +41,7 @@ class DatasetSample:
     intrinsic_matrix: np.ndarray
     blended_img: np.ndarray = field(default=None, init=False)
 
-    def generate_blended_img(self)->None:
+    def generate_blended_img(self) -> None:
         T_LN_CV2 = self.extrinsic_matrix
         img = self.raw_img.copy()
 
@@ -66,7 +66,7 @@ class DatasetSample:
         # Display image
         for i in range(img_pt.shape[0]):
             img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
-        
+
         self.blended_img = img
 
 
@@ -95,17 +95,13 @@ class SampleSaver:
         if self.yaml_saver is None:
             self.yaml_saver = YamlSaver(self.root)
 
-    # def init_step_fmt(self) -> str:
-    #     """Create a format string for the step number such as `{step:05d}`"""
-    #     return f"0{self.__num_of_digits_per_step}d"
-
-    def get_fmt_step(self) -> str:
-        print(self.__fmt)
-        return f"{self.__internal_step:{self.__fmt}}"
+    @classmethod
+    def fmt_step(cls, step) -> str:
+        return f"{step:{DatasetConsts.FMT_STR.value}}"
 
     def save_sample(self, sample: DatasetSample):
-        self.img_saver.save_sample(str_step=self.get_fmt_step(), data=sample)
-        self.yaml_saver.save_sample(str_step=self.get_fmt_step(), data=sample)
+        self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+        self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
         self.__internal_step += 1
 
         if self.__internal_step > self.__max_step:
@@ -114,9 +110,6 @@ class SampleSaver:
                 "Modify `self.__num_of_digits_per_step` to collect bigger datasets "
                 "than {self.__max_step}"
             )
-
-    # def save_intrinsics(self, intrinsics: np.ndarray):
-    #     pass
 
     def close(self):
         self.yaml_saver.close()
