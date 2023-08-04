@@ -32,7 +32,6 @@ Options:
   --help               Show this message and exit.
 ```
 
-Do adapt this script, make sure to check the `DatasetSample` class that is return by the `DatasetReader` class.
 
 **Projecting script**
 ```bash
@@ -50,6 +49,8 @@ Options:
   --path TEXT  Path to save dataset  [required]
   --help       Show this message and exit.
 ```
+
+To load data into a neural network I would adapt start from this script. `DatasetReader` was build similarly to torch `Dataset`. Make sure to check the `DatasetSample` and `DatasetReader` classes for more info.
 
 ## Known issues:
 
