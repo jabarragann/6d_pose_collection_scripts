@@ -13,7 +13,7 @@ pip install -e .
 ```
 
 ## Scripts
-Scripts to use to collect and read data are found in `scripts/` folder.
+Scripts to collect and read data are found in `scripts/` folder.
 
 **Collection script**
 ```bash
