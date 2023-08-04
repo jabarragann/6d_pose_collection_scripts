@@ -32,6 +32,8 @@ Options:
   --help               Show this message and exit.
 ```
 
+Do adapt this script, make sure to check the `DatasetSample` class that is return by the `DatasetReader` class.
+
 **Projecting script**
 ```bash
 python generate_blended.py --help
