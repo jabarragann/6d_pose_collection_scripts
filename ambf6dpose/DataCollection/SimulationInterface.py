@@ -13,6 +13,7 @@ import rospy
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.ecm_arm import ECM
 from dataclasses import dataclass, field
+from threading import Thread
 
 
 np.set_printoptions(precision=3, suppress=True)
@@ -100,14 +101,32 @@ class SimulationInterface:
 
         return T_LN_CV2
 
+    def __get_img(self):
+        self.img = self.img_subs.left_frame
+
+    def __get_seg_img(self):
+        self.seg_img = self.img_subs.seg_left_frame
+
+    def __get_extrinsics(self):
+        self.T_LN_CV2 = self.get_needle_extrinsics()
+
     def generate_dataset_sample(self) -> DatasetSample:
-        img = self.img_subs.left_frame
-        seg_img = self.img_subs.seg_left_frame
-        # Get extrinsics
-        T_LN_CV2 = self.get_needle_extrinsics()  # Needle to CamL
-        # Get intrinsics
+        # img = self.img_subs.left_frame
+        # seg_img = self.img_subs.seg_left_frame
+        # # Get extrinsics
+        # T_LN_CV2 = self.get_needle_extrinsics()  # Needle to CamL
+        # # Get intrinsics
+        t2 = Thread(target=self.__get_img)
+        t3 = Thread(target=self.__get_seg_img)
+        t1 = Thread(target=self.__get_extrinsics)
+        t1.start()
+        t2.start()
+        t3.start()
+        t1.join()
+        t2.join()
+        t3.join()
         K = self.get_intrinsics()
-        return DatasetSample(img, seg_img, T_LN_CV2, K)
+        return DatasetSample(self.img, self.seg_img, self.T_LN_CV2, K)
 
 
 if __name__ == "__main__":

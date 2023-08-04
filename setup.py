@@ -14,7 +14,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=["numpy", "rich", "click"],
     include_package_data=True,
-    python_requires=">=3.10",
+    python_requires=">=3.8",
     # entry_points={
     #     "console_scripts": [
     #         "surg_seg_generate_labels = surg_seg.Scripts.generate_labels:main",

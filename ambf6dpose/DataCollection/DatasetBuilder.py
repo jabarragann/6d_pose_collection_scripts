@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from enum import Enum
 import yaml
+from threading import Thread
 
 
 class ImgDirs(Enum):
@@ -99,9 +100,21 @@ class SampleSaver:
     def fmt_step(cls, step) -> str:
         return f"{step:{DatasetConsts.FMT_STR.value}}"
 
-    def save_sample(self, sample: DatasetSample):
+    def __save_img(self, sample: DatasetSample):
         self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+
+    def __save_yaml(self, sample:DatasetSample):
         self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+
+    def save_sample(self, sample: DatasetSample):
+        # self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+        # self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+        t1 = Thread(target=self.__save_yaml, args=(sample,))
+        t2 = Thread(target=self.__save_img, args=(sample,))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
         self.__internal_step += 1
 
         if self.__internal_step > self.__max_step:
