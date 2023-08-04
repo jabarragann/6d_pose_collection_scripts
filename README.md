@@ -50,7 +50,7 @@ Options:
   --help       Show this message and exit.
 ```
 
-To load data into a neural network I would adapt start from this script. `DatasetReader` was build similarly to torch `Dataset`. Make sure to check the `DatasetSample` and `DatasetReader` classes for more info.
+To load data into a neural network I would start from this script. `DatasetReader` was build similarly to torch `Dataset`. Make sure to check the `DatasetSample` and `DatasetReader` classes for more info.
 
 ## Known issues:
 
