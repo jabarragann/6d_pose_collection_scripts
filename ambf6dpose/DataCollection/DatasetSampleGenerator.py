@@ -10,7 +10,7 @@ np.set_printoptions(precision=3, suppress=True)
 
 
 @dataclass
-class RawDataProcessor:
+class DatasetSampleGenerator:
     simulation_client: AbstractSimulationClient
 
     def __post_init__(self):
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     client.wait_until_first_sample(timeout=10)
 
     # Collect and process data
-    sim_interface = RawDataProcessor(client)
+    sim_interface = DatasetSampleGenerator(client)
     sample = sim_interface.generate_dataset_sample()
     sample.generate_blended_img()
     cv2.imshow("blended", sample.blended_img)

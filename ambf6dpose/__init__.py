@@ -10,7 +10,7 @@ from ambf6dpose.DataCollection.RosClients import (
     AMBFClientWrapper,
     RawSimulationData,
 )
-from ambf6dpose.DataCollection.SimulationInterface import RawDataProcessor
+from ambf6dpose.DataCollection.DatasetSampleGenerator import DatasetSampleGenerator
 from ambf6dpose.DataCollection.DatasetBuilder import SampleSaver
 from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
 from ambf6dpose.DataCollection.DatasetReader import DatasetReader
