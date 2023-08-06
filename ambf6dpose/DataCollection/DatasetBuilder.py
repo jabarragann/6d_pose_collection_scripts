@@ -82,10 +82,8 @@ class SampleSaver:
     yaml_saver: YamlSaver = field(default=None)
 
     def __post_init__(self):
-        self.__num_of_digits_per_step: int = DatasetConsts.NUM_OF_DIGITS_PER_STEP.value
         self.__max_step = DatasetConsts.MAX_STEP.value
         self.__internal_step = 0
-        self.__fmt = DatasetConsts.FMT_STR.value
 
         self.root.mkdir(exist_ok=True)
 
@@ -128,6 +126,7 @@ class ImageSaver:
         return {
             ImgDirs.RAW: self.root_path / ImgDirs.RAW.value,
             ImgDirs.SEGMENTED: self.root_path / ImgDirs.SEGMENTED.value,
+            ImgDirs.BLENDED: self.root_path / ImgDirs.BLENDED.value,
         }
 
     def create_dir(self):
@@ -139,6 +138,10 @@ class ImageSaver:
         segmented_path = str(self.dir_dict[ImgDirs.SEGMENTED] / f"{str_step}.png")
         cv2.imwrite(raw_path, data.raw_img)
         cv2.imwrite(segmented_path, data.segmented_img)
+
+        data.generate_blended_img()
+        blended_path = str(self.dir_dict[ImgDirs.BLENDED] / f"{str_step}.png")
+        cv2.imwrite(blended_path, data.blended_img)
 
 
 @dataclass
