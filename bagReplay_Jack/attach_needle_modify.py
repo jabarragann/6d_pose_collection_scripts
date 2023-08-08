@@ -47,6 +47,7 @@ from surgical_robotics_challenge.simulation_manager import SimulationManager
 import PyKDL
 from PyKDL import Vector, Rotation
 from surgical_robotics_challenge.utils.utilities import cartesian_interpolate_step_num
+from surgical_robotics_challenge.psm_arm import PSM
 import numpy as np
 import time
 import rospy
@@ -189,18 +190,28 @@ if __name__ == "__main__":
     time.sleep(0.5)
     attachmotion = AttachNeedle(needle, link1, link2)
 
-    tk = Tk()
-    tk.title("Attache Needle")
-    tk.geometry("250x150")
-    link1_button = Button(tk, text="PSM 1", command=attachmotion.psm1_btn_cb,
-                          height=3, width=50, bg="red")
-    link2_button = Button(tk, text="PSM 2", command=attachmotion.psm2_btn_cb,
-                          height=3, width=50, bg="yellow")
+    psm2 = PSM(simulation_manager, 'psm2', add_joint_errors=False)
+    psm2_jp = [-0.3287843223486435, -0.20381993113387006, 0.1382636372893194, -0.3342536922764675, 0.5989012506373477,
+               -0.09461173139535281]
+    psm2.servo_jp(psm2_jp)
+    psm2.set_jaw_angle(0.7)
 
-    link1_button.pack()
-    link2_button.pack()
+    atn = AttachNeedle(needle, link1, link2)
 
-    tk.mainloop()
+    atn.attach_needle(needle, link2, atn.offset_psm2)
+
+    # tk = Tk()
+    # tk.title("Attache Needle")
+    # tk.geometry("250x150")
+    # link1_button = Button(tk, text="PSM 1", command=attachmotion.psm1_btn_cb,
+    #                       height=3, width=50, bg="red")
+    # link2_button = Button(tk, text="PSM 2", command=attachmotion.psm2_btn_cb,
+    #                       height=3, width=50, bg="yellow")
+    #
+    # link1_button.pack()
+    # link2_button.pack()
+    #
+    # tk.mainloop()
 
     # rate = rospy.Rate(200)
     # pub_topic = rospy.Publisher('/Attach_needle', Int64, queue_size=1)
