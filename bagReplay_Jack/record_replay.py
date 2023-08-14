@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # rosbag_name = '/home/zhyjack/dVRK_LfD_simulation/data/test_4.bag'
     # rosbag_name = '/ssd/test_new_1.bag'
     # rosbag_name = '/ssd/test_new_2.bag'
-    rosbag_name='/home/jackzhy/user_study_latest_data/user_dave_01.bag'
+    rosbag_name='/home/jackzhy/user_study_latest_data/user_jack_03.bag'
     # output_folder = os.path.join(dynamic_path, 'test_image')
     #
     # if not os.path.exists(output_folder):
@@ -201,20 +201,20 @@ if __name__ == '__main__':
 
     # atn = AttachNeedle(needle, link1, link2)
 
-    for i in range(len(psm1_pos)-1):
-        cam.servo_jp(ecm_pos[i])
-        psm1.servo_jp(psm1_pos[i])
-        # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
-        psm1.set_jaw_angle(psm1_jaw[i])
-        psm2.servo_jp(psm2_pos[i])
-        psm2.set_jaw_angle(psm2_jaw[i])
-        time.sleep(0.01)
-
-        # if (i > 2000) and (i < 4000):
-        #     atn.attach_needle(needle, link2, atn.offset_psm2)
-
-        count += 1
-        print(count)
+    # for i in range(len(psm1_pos)-1):
+    #     cam.servo_jp(ecm_pos[i])
+    #     psm1.servo_jp(psm1_pos[i])
+    #     # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
+    #     psm1.set_jaw_angle(psm1_jaw[i])
+    #     psm2.servo_jp(psm2_pos[i])
+    #     psm2.set_jaw_angle(psm2_jaw[i])
+    #     time.sleep(0.01)
+    #
+    #     # if (i > 2000) and (i < 4000):
+    #     #     atn.attach_needle(needle, link2, atn.offset_psm2)
+    #
+    #     count += 1
+    #     print(count)
 
     # # First we shall move the PSM to its initial pose using joint commands OR pose command
     # psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])

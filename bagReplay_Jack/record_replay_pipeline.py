@@ -17,9 +17,9 @@ print(dynamic_path)
 sys.path.append(dynamic_path)
 
 
-class threadWithReturn(Thread):
+class ThreadWithReturn(Thread):
     def __init__(self, *args, **kwargs):
-        super(threadWithReturn, self).__init__(*args, **kwargs)
+        super(ThreadWithReturn, self).__init__(*args, **kwargs)
         self._return = None
 
     def run(self):
@@ -27,8 +27,9 @@ class threadWithReturn(Thread):
             self._return = self._target(*self._args, **self._kwargs)
 
     def join(self, *args, **kwargs):
-        super(threadWithReturn, self).join(*args, **kwargs)
+        super(ThreadWithReturn, self).join(*args, **kwargs)
         return self._return
+
 
 def read_rosbag(rosbag_name):
     bag = rosbag.Bag(rosbag_name)
@@ -179,9 +180,42 @@ if __name__ == '__main__':
 
     ### preset ECM pose in joint space
     ecm_list = []
-    ecm_list.append([0.0, 0.05, -0.01, 0.0])
-    ecm_list.append([0.0, 0.05, -0.01, 0.2])
+    ecm_list.append([0.0, 0.0, 0.0, 0.0]) # 0
+    ecm_list.append([0.0, 0.05, -0.01, 0.0]) # 1
+    ecm_list.append([0.0, 0.05, -0.01, 0.4]) # 2
+    ecm_list.append([0.0, 0.05, -0.01, -0.4]) # 3
+    ecm_list.append([0.2, 0.05, -0.01, 0.0]) # 4
+    ecm_list.append([-0.2, 0.05, -0.01, 0.0]) # 5
+    ecm_list.append([0.0, 0.15, -0.01, 0.0]) # 6
+    ecm_list.append([0.0, -0.05, -0.01, 0.0]) # 7
+    ecm_list.append([0.0, 0.05, -0.05, 0.0]) # 8
+    ecm_list.append([0.0, 0.05, 0.03, 0.0]) # 9
+    ecm_list.append([0.1, 0.05, -0.01, 0.2])  # 10
+    ecm_list.append([-0.1, 0.05, -0.01, -0.2])  # 11
+    ecm_list.append([0.1, 0.10, -0.01, 0.0])  # 12
+    ecm_list.append([-0.1, 0.0, -0.01, 0.0])  # 13
+    ecm_list.append([0.0, 0.10, -0.01, 0.3])  # 14
+    ecm_list.append([0.0, 0.0, -0.01, 0.3])  # 15
+    ecm_list.append([0.1, 0.10, -0.01, 0.1])  # 16
+    ecm_list.append([-0.1, 0.0, -0.01, -0.1])  # 17
+    ecm_list.append([0.1, 0.10, -0.04, -0.1])  # 18
+    ecm_list.append([-0.1, 0.0, 0.02, 0.1])  # 19
+
     num_ecm = len(ecm_list)
+    #
+    # ### test ECM poses
+    # psm1_jp = [0.30780306382205863, -0.22222915389237488, 0.1423643360325034,
+    #            -1.3613186165319513,0.5750600725456388, -0.8399263308008617]
+    # psm2_jp = [-0.46695894800579796, -0.17860657808832947, 0.15012366098379068,
+    #            -1.0873261421084663, 0.7172512403887915, 0.48780102579228307]
+    # psm1.servo_jp(psm1_jp)
+    # psm1.set_jaw_angle(0.7)
+    # psm2.servo_jp(psm2_jp)
+    # psm2.set_jaw_angle(0.7)
+    # time.sleep(0.5)
+    # for idx in range(num_ecm):
+    #     cam.servo_jp(ecm_list[idx])
+    #     input('Press Enter to continue ...')
 
     for i in range(len(file_list)):
         rosbag_name = file_list[i]
@@ -189,10 +223,10 @@ if __name__ == '__main__':
         gc.collect()
         for j in range(num_ecm):
             t_replay = Thread(target=run_replay, args=(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw))
-            t_record = threadWithReturn(target=run_record, args=(i, j, num_ecm))
+            t_record = ThreadWithReturn(target=run_record, args=(i, j, num_ecm))
             cam.servo_jp(ecm_list[i])
             time.sleep(0.5)
-            print(f'\n Move to Camera Position {str(i).zfill(3)} ... \n')
+            print(f'\n Move to Camera Position {str(j).zfill(3)} ... \n')
             t_replay.start()
             t_record.start()
             t_replay.join()
