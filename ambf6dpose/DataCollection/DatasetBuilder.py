@@ -97,12 +97,6 @@ class SampleSaver:
     def fmt_step(cls, step) -> str:
         return f"{step:{DatasetConsts.FMT_STR.value}}"
 
-    def __save_img(self, sample: DatasetSample):
-        self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
-
-    def __save_yaml(self, sample:DatasetSample):
-        self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
-
     def save_sample(self, sample: DatasetSample):
         self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
         self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
