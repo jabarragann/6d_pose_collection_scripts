@@ -6,7 +6,7 @@ from ambf6dpose.DataCollection.DatasetBuilder import YamlFiles, YamlKeys, ImgDir
 from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
 from dataclasses import dataclass, field
 import cv2
-
+import imageio
 
 def trnorm(rot: np.ndarray):
     """Convert to proper rotation matrix
@@ -97,16 +97,26 @@ class DatasetReader:
         if key > DatasetConsts.MAX_STEP.value or key < 0:
             raise IndexError
         else:
-            step_str = DatasetReader.format_step(key)
-            sample = DatasetSample(
-                raw_img=cv2.imread(str(self.__dict_paths[ImgDirs.RAW] / f"{step_str}.png")),
-                segmented_img=cv2.imread(
-                    str(self.__dict_paths[ImgDirs.SEGMENTED] / f"{step_str}.png")
-                ),
-                extrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
-                intrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.INTRINSIC, step_str),
-            )
-            return sample
+            return self.construct_sample(key) 
+
+    def construct_sample(self, key: int) -> DatasetSample:
+        step_str = DatasetReader.format_step(key)
+        raw_path = str(self.__dict_paths[ImgDirs.RAW] / f"{step_str}.png")
+        seg_path = str(self.__dict_paths[ImgDirs.SEGMENTED] / f"{step_str}.png")
+        depth_path = str(self.__dict_paths[ImgDirs.DEPTH] / f"{step_str}.png")
+
+        sample = DatasetSample(
+            raw_img=cv2.imread(raw_path),
+            segmented_img=cv2.imread(seg_path),
+            depth_img = self.load_depth(depth_path), 
+            extrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
+            intrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.INTRINSIC, step_str),
+        )
+        return sample
+
+    def load_depth(self, path):
+        d:np.ndarray = imageio.imread(path)
+        return d.astype(np.float32)
 
     def get_matrix_from_yaml(self, yaml_type: YamlFiles, key: str) -> np.ndarray:
         if yaml_type == YamlFiles.EXTRINSIC:

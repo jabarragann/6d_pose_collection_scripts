@@ -1,9 +1,9 @@
 from pathlib import Path
 import click
-from ambf6dpose import DatasetSampleGenerator, SampleSaver
+from ambf6dpose import SimulatorDataProcessor, SampleSaver
 import rospy
 import time
-from ambf6dpose import AbstractSimulationClient, SyncRosInterface, RosInterface, AMBFClientWrapper
+from ambf6dpose import AbstractSimulationClient, SyncRosInterface
 
 
 @click.command()
@@ -19,7 +19,7 @@ def collect_data(path: str, sample_time: float) -> None:
     client = SyncRosInterface()
     client.wait_until_first_sample()
 
-    samples_generator = DatasetSampleGenerator(client)
+    samples_generator = SimulatorDataProcessor(client)
     saver = SampleSaver(root=path)
 
     last_time = time.time() + sample_time

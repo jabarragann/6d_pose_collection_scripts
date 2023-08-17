@@ -27,7 +27,7 @@ def load_mesh(mesh_path):
 
 
 def opencv_projection(vertices: np.ndarray, sample: DatasetSample):
-    sample = dataset[0]
+
     intrinsic_mat = sample.intrinsic_matrix
     extrinsic_mat = sample.extrinsic_matrix
     img = sample.raw_img
@@ -48,12 +48,11 @@ def opencv_projection(vertices: np.ndarray, sample: DatasetSample):
     cv2.waitKey(0)
 
 
-def bop_rendering(model_path):
+def bop_rendering(model_path: Path, sample: DatasetSample):
     from bop_toolkit_lib.renderer_vispy import RendererVispy
     from bop_toolkit_lib.visualization import draw_rect, write_text_on_image
     from bop_toolkit_lib import misc
 
-    sample: DatasetSample = dataset[55]
     intrinsic_mat = sample.intrinsic_matrix
     extrinsic_mat = sample.extrinsic_matrix
     fx, fy, cx, cy = (
@@ -112,11 +111,12 @@ def bop_rendering(model_path):
 
 
 if __name__ == "__main__":
-    mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled.ply")
-    ds_path = Path("./scripts/6d_pose_sample_ds")
+    mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled_mm.ply")
+    # ds_path = Path("./scripts/6d_pose_sample_ds")
+    ds_path = Path("./test_ds")
     dataset = DatasetReader(ds_path)
 
     vertices, mesh = load_mesh(mesh_path)
 
-    # opencv_projection(vertices, dataset[0])
-    bop_rendering(mesh_path)
+    opencv_projection(vertices, dataset[5])
+    bop_rendering(mesh_path, dataset[5])

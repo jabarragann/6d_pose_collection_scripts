@@ -54,7 +54,7 @@ class DatasetSample:
 
         # needle_salient points
         theta = np.linspace(np.pi / 3, np.pi, num=8).reshape((-1, 1))
-        radius = 0.1018 / 10
+        radius = 0.1018 / 10 * 1000
         needle_salient = radius * np.hstack((np.cos(theta), np.sin(theta), theta * 0))
 
         # Project points
@@ -125,11 +125,6 @@ class ImageSaver:
         for imdir in ImgDirs:
             img_dirs[imdir] = self.root_path / imdir.value
         return img_dirs
-        # return {
-        #     ImgDirs.RAW: self.root_path / ImgDirs.RAW.value,
-        #     ImgDirs.SEGMENTED: self.root_path / ImgDirs.SEGMENTED.value,
-        #     ImgDirs.BLENDED: self.root_path / ImgDirs.BLENDED.value,
-        # }
 
     def create_dir(self):
         for dir in self.dir_dict.values():
