@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from ambf6dpose import DatasetReader
 from surgical_robotics_challenge.units_conversion import SimToSI
-from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.CustomYamlSaver.DatasetBuilder import DatasetSample
 from bop_toolkit_lib.renderer_vispy import RendererVispy
 from bop_toolkit_lib.visualization import draw_rect, write_text_on_image
 from bop_toolkit_lib import misc

@@ -6,7 +6,7 @@ import cv2
 from ambf6dpose import DatasetReader
 from surgical_robotics_challenge.units_conversion import SimToSI
 
-from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.CustomYamlSaver.DatasetBuilder import DatasetSample
 
 
 def load_mesh(mesh_path):

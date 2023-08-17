@@ -1,6 +1,7 @@
 from pathlib import Path
 import click
-from ambf6dpose import SimulatorDataProcessor, SampleSaver
+from ambf6dpose import SimulatorDataProcessor
+from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import SampleSaver
 import rospy
 import time
 from ambf6dpose import AbstractSimulationClient, SyncRosInterface

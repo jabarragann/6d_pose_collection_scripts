@@ -1,4 +1,4 @@
-from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 import cv2
 import numpy as np
 from numpy.linalg import inv
@@ -69,7 +69,7 @@ class SimulatorDataProcessor:
 
 
 if __name__ == "__main__":
-    from ambf6dpose import RosInterface, SyncRosInterface, AMBFClientWrapper
+    from ambf6dpose import SyncRosInterface
     import time
 
     # Client - 3 options: AMBFClientWrapper, RosInterface, SyncRosInterface

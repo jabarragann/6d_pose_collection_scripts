@@ -2,59 +2,17 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 import numpy as np
 import yaml
-from ambf6dpose.DataCollection.DatasetBuilder import YamlFiles, YamlKeys, ImgDirs, DatasetConsts
-from ambf6dpose.DataCollection.DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlFiles, YamlKeys, ImgDirs, DatasetConsts
+from ambf6dpose.DataCollection.DatasetSample import DatasetSample
+from ambf6dpose.DataCollection.AbstractReaderSaver import AbstractReader
 from dataclasses import dataclass, field
 import cv2
 import imageio
-
-def trnorm(rot: np.ndarray):
-    """Convert to proper rotation matrix
-    https://petercorke.github.io/spatialmath-python/func_3d.html?highlight=trnorm#spatialmath.base.transforms3d.trnorm
-
-    Parameters
-    ----------
-    rot : np.ndarray
-        3x3 numpy array
-
-    Returns
-    -------
-    proper_rot
-        proper rotation matrix
-    """
-
-    unitvec = lambda x: x / np.linalg.norm(x)
-    o = rot[:3, 1]
-    a = rot[:3, 2]
-
-    n = np.cross(o, a)  # N = O x A
-    o = np.cross(a, n)  # (a)];
-    new_rot = np.stack((unitvec(n), unitvec(o), unitvec(a)), axis=1)
-
-    return new_rot
-
-
-def is_rotation(rot: np.ndarray, tol=100):
-    """Test if matrix is a proper rotation matrix
-
-    Taken from
-    https://petercorke.github.io/spatialmath-python/func_nd.html#spatialmath.base.transformsNd.isR
-
-    Parameters
-    ----------
-    rot : np.ndarray
-        3x3 np.array
-    """
-    _eps = np.finfo(np.float64).eps
-    return (
-        np.linalg.norm(rot @ rot.T - np.eye(rot.shape[0])) < tol * _eps
-        and np.linalg.det(rot @ rot.T) > 0
-    )
+from ambf6dpose.DataCollection.AbstractReaderSaver import is_rotation, trnorm
 
 
 @dataclass
-class DatasetReader:
-    root: Path
+class DatasetReader(AbstractReader):
 
     def __post_init__(self):
         self.__dict_paths: Dict[ImgDirs, Path] = {}
@@ -154,7 +112,7 @@ class DatasetReader:
 
 
 if __name__ == "__main__":
-    reader = DatasetReader(Path("./test_d2"))
+    reader = DatasetReader(Path("./test_ds"))
     sample = reader[0]
     sample.generate_blended_img()
     cv2.imshow("raw", sample.blended_img)
