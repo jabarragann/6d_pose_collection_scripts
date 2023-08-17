@@ -3,9 +3,11 @@ import rospy, rostopic
 import message_filters
 import rostopic
 from ambf6dpose.DataCollection.Rostopics import RosTopics
+import click
+
 
 class TestRosSyncClient:
-    def __init__(self):
+    def __init__(self, slop):
         self.subscribers = []
         for topic in RosTopics:
             self.subscribers.append(message_filters.Subscriber(topic.value[0], topic.value[1]))
@@ -13,7 +15,7 @@ class TestRosSyncClient:
         # WARNING: TimeSynchronizer did not work. Use ApproximateTimeSynchronizer instead.
         # self.time_sync = message_filters.TimeSynchronizer(self.subscribers, 10)
         self.time_sync = message_filters.ApproximateTimeSynchronizer(
-            self.subscribers, queue_size=10, slop=0.05
+            self.subscribers, queue_size=10, slop=slop
         )
 
         self.last_time = time.time()
@@ -21,12 +23,18 @@ class TestRosSyncClient:
         time.sleep(0.25)
 
     def common_cb(self, *inputs):
-        print(f"Time from last message {(time.time() - self.last_time)*1000:0.3f}")
-        print(f"message received")
+        print(f"Time from last message {(time.time() - self.last_time)*1000:0.3f}ms", end="\r")
         self.last_time = time.time()
 
 
-if __name__ == "__main__":
+@click.command()
+@click.option("--slop",default=0.05, type=float)
+def test_sync_client(slop:float):
+    """Test approximate syncronize message filter"""
+
     rospy.init_node("test_ros_client")
-    client = TestRosSyncClient()
+    client = TestRosSyncClient(slop)
     rospy.spin()
+
+if __name__ == "__main__":
+    test_sync_client()
