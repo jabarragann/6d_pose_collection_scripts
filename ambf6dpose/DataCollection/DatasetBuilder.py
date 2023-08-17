@@ -8,11 +8,13 @@ import cv2
 import numpy as np
 from enum import Enum
 import yaml
+import png
 
 
 class ImgDirs(Enum):
     RAW = "raw_img"
     SEGMENTED = "segmented_img"
+    DEPTH = "depth_img"
     BLENDED = "blended_img"
 
 
@@ -37,6 +39,7 @@ class DatasetConsts(Enum):
 class DatasetSample:
     raw_img: np.ndarray
     segmented_img: np.ndarray
+    depth_img: np.ndarray
     extrinsic_matrix: np.ndarray
     intrinsic_matrix: np.ndarray
     blended_img: np.ndarray = field(default=None, init=False)
@@ -68,11 +71,6 @@ class DatasetSample:
             img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
 
         self.blended_img = img
-
-
-@dataclass
-class DatasetBuilder:
-    dataset_saver: SampleSaver
 
 
 @dataclass
@@ -123,11 +121,15 @@ class ImageSaver:
         self.create_dir()
 
     def get_img_dirs(self) -> Dict[ImgDirs, Path]:
-        return {
-            ImgDirs.RAW: self.root_path / ImgDirs.RAW.value,
-            ImgDirs.SEGMENTED: self.root_path / ImgDirs.SEGMENTED.value,
-            ImgDirs.BLENDED: self.root_path / ImgDirs.BLENDED.value,
-        }
+        img_dirs = {}
+        for imdir in ImgDirs:
+            img_dirs[imdir] = self.root_path / imdir.value
+        return img_dirs
+        # return {
+        #     ImgDirs.RAW: self.root_path / ImgDirs.RAW.value,
+        #     ImgDirs.SEGMENTED: self.root_path / ImgDirs.SEGMENTED.value,
+        #     ImgDirs.BLENDED: self.root_path / ImgDirs.BLENDED.value,
+        # }
 
     def create_dir(self):
         for dir in self.dir_dict.values():
@@ -139,9 +141,24 @@ class ImageSaver:
         cv2.imwrite(raw_path, data.raw_img)
         cv2.imwrite(segmented_path, data.segmented_img)
 
+        # Save depth
+        self.save_depth(self.dir_dict[ImgDirs.DEPTH] / f"{str_step}.png", data.depth_img)
+
         data.generate_blended_img()
         blended_path = str(self.dir_dict[ImgDirs.BLENDED] / f"{str_step}.png")
         cv2.imwrite(blended_path, data.blended_img)
+    
+    def save_depth(self, path: str, depth_im:np.ndarray):
+        path = str(path)
+        if path.split('.')[-1].lower() != 'png':
+            raise ValueError('Only PNG format is currently supported.')
+
+        im_uint16 = np.round(depth_im).astype(np.uint16)
+
+        # PyPNG library can save 16-bit PNG and is faster than imageio.imwrite().
+        w_depth = png.Writer(depth_im.shape[1], depth_im.shape[0], greyscale=True, bitdepth=16)
+        with open(path, 'wb') as f:
+            w_depth.write(f, np.reshape(im_uint16, (-1, depth_im.shape[1])))
 
 
 @dataclass

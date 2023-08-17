@@ -1,3 +1,4 @@
+from __future__ import annotations
 import time
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.ecm_arm import ECM
@@ -5,30 +6,16 @@ from surgical_robotics_challenge.scene import Scene
 from surgical_robotics_challenge.camera import Camera
 import numpy as np
 import tf_conversions.posemath as pm
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image 
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
-from surgical_robotics_challenge.units_conversion import SimToSI
 from dataclasses import dataclass, field
 from abc import ABC
-import PyKDL
 from ambf_msgs.msg import CameraState
 from ambf_msgs.msg import RigidBodyState
-from enum import Enum
 import message_filters
+from ambf6dpose.DataCollection.Rostopics import RosTopics, get_topics_processing_cb, topic_to_attr_dict
 
-
-def convert_units(frame: PyKDL.Frame):
-    scaled_frame = PyKDL.Frame(frame.M, frame.p / SimToSI.linear_factor)
-    return scaled_frame
-
-
-class RosTopics(Enum):
-    CAMERA_L = ("/ambf/env/cameras/cameraL/State", CameraState)
-    CAMERA_FRAME = ("/ambf/env/CameraFrame/State", RigidBodyState)
-    NEEDLE = ("/ambf/env/Needle/State", RigidBodyState)
-    CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
-    CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraL2/ImageData", Image)
 
 
 @dataclass
@@ -38,6 +25,7 @@ class RawSimulationData:
     needle_pose: np.ndarray
     camera_l_img: np.ndarray
     camera_l_seg_img: np.ndarray
+    camera_l_depth: np.ndarray
 
     def __post_init__(self):
         if self.has_none_members():
@@ -52,6 +40,15 @@ class RawSimulationData:
         attrs_values = list(vars(self).values())
         return any([e is None for e in attrs_values])
 
+    @classmethod
+    def from_dict(cls:RawSimulationData, data: dict[RosTopics,np.ndarray]):
+        #Map the keys to the class attributes
+        dict_variables = {}
+        for (key,value) in data.items():
+            dict_variables[topic_to_attr_dict[key]] = value
+        # dict_variable = {cls.topic_to_attr[key]:value for (key,value) in data.items()}
+
+        return cls(**dict_variables)
 
 @dataclass
 class AbstractSimulationClient(ABC):
@@ -164,43 +161,56 @@ class ImageSub:
             print(e)
 
 
+
+
 @dataclass
 class SyncRosInterface(AbstractSimulationClient):
     def __post_init__(self):
         super().__post_init__()
         self.bridge = CvBridge()
         self.subscribers = []
+        self.callback_dict = get_topics_processing_cb()
 
         for topic in RosTopics:
             self.subscribers.append(message_filters.Subscriber(topic.value[0], topic.value[1]))
 
         # WARNING: TimeSynchronizer did not work. Use ApproximateTimeSynchronizer instead.
         # self.time_sync = message_filters.TimeSynchronizer(self.subscribers, 10)
-        self.time_sync = message_filters.ApproximateTimeSynchronizer(self.subscribers, 10, 0.05)
+        self.time_sync = message_filters.ApproximateTimeSynchronizer(
+            self.subscribers, queue_size=10, slop=0.05
+        )
         self.time_sync.registerCallback(self.cb)
 
-        time.sleep(0.2)
+        time.sleep(0.25)
 
     def cb(self, *inputs):
+        raw_data_dict = {}
         for input_msg, topic in zip(inputs, RosTopics):
-            if topic == RosTopics.CAMERA_L:
-                camera_l_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
-            elif topic == RosTopics.CAMERA_FRAME:
-                camera_frame_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
-            elif topic == RosTopics.NEEDLE:
-                needle_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
-            elif topic == RosTopics.CAMERA_L_IMAGE:
-                camera_l_img = self.bridge.imgmsg_to_cv2(input_msg, "bgr8")
-            elif topic == RosTopics.CAMERA_L_SEG_IMAGE:
-                camera_l_seg_img = self.bridge.imgmsg_to_cv2(input_msg, "bgr8")
+            raw_data_dict[topic] = self.callback_dict[topic](input_msg)
 
-        self.raw_data = RawSimulationData(
-            camera_l_pose=camera_l_pose,
-            camera_frame_pose=camera_frame_pose,
-            needle_pose=needle_pose,
-            camera_l_img=camera_l_img,
-            camera_l_seg_img=camera_l_seg_img,
-        )
+        self.raw_data = RawSimulationData.from_dict(raw_data_dict)
+        #     if topic == RosTopics.CAMERA_L:
+        #         # camera_l_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
+        #         camera_l_pose = self.callback_dict[topic](input_msg)
+        #     elif topic == RosTopics.CAMERA_FRAME:
+        #         camera_frame_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
+        #     elif topic == RosTopics.NEEDLE:
+        #         needle_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
+        #     elif topic == RosTopics.CAMERA_L_IMAGE:
+        #         camera_l_img = self.bridge.imgmsg_to_cv2(input_msg, "bgr8")
+        #     elif topic == RosTopics.CAMERA_L_SEG_IMAGE:
+        #         camera_l_seg_img = self.bridge.imgmsg_to_cv2(input_msg, "bgr8")
+        #     elif topic == RosTopics.CAMERA_L_DEPTH:
+        #         camera_l_depth = self.callback_dict[topic](input_msg)
+
+        # self.raw_data = RawSimulationData(
+        #     camera_l_pose=camera_l_pose,
+        #     camera_frame_pose=camera_frame_pose,
+        #     needle_pose=needle_pose,
+        #     camera_l_img=camera_l_img,
+        #     camera_l_seg_img=camera_l_seg_img,
+        #     camera_l_depth=camera_l_depth,
+        # )
 
 
 @dataclass

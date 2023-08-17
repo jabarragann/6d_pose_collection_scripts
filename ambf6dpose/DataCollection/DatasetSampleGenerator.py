@@ -54,12 +54,14 @@ class DatasetSampleGenerator:
         raw_data = self.simulation_client.get_data()
         img = raw_data.camera_l_img
         seg_img = raw_data.camera_l_seg_img
+        depth_img = raw_data.camera_l_depth
 
         # Get extrinsics
         T_LN_CV2 = self.get_needle_extrinsics(raw_data)  # Needle(N) to CamL (L) (T_LN)
         # Get intrinsics
         K = self.get_intrinsics()
-        return DatasetSample(img, seg_img, T_LN_CV2, K)
+
+        return DatasetSample(img, seg_img, depth_img, T_LN_CV2, K)
 
 
 if __name__ == "__main__":
