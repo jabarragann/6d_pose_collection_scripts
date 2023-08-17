@@ -86,7 +86,6 @@ class AbstractSimulationClient(ABC):
 class SyncRosInterface(AbstractSimulationClient):
     def __post_init__(self):
         super().__post_init__()
-        self.bridge = CvBridge()
         self.subscribers = []
         self.callback_dict = get_topics_processing_cb()
 
