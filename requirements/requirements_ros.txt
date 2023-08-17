@@ -1,0 +1,28 @@
+
+#opencv-python==4.5.5.64
+#rich
+#ffmpeg==1.4
+#click
+#natsort==8.2.0
+#matplotlib
+#tqdm
+--extra-index-url https://rospypi.github.io/simple/
+rospy
+tf2-ros
+PyKDL
+cv-bridge
+message-filters
+tf-conversions
+rosbag
+ros-numpy
+rostopic
+nav-msgs
+
+# --extra-index-url https://rospypi.github.io/simple/
+# rospy==1.15.11
+# tf2-ros==0.6.5
+# PyKDL==1.5.1
+# cv-bridge==1.13.0.post0
+# message-filters==1.15.11
+# tf-conversions==1.12.0
+# rosbag==1.15.11
