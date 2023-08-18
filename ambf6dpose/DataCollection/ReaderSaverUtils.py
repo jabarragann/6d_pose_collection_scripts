@@ -6,6 +6,7 @@ from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 import numpy as np
 from enum import Enum, auto
 import cv2
+import png
 
 class ImgDirs(Enum):
     RAW = auto()
