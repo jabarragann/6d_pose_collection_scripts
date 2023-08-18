@@ -4,11 +4,11 @@ import numpy as np
 import yaml
 from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlFiles, YamlKeys, ImgDirs, DatasetConsts
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
-from ambf6dpose.DataCollection.AbstractReaderSaver import AbstractReader
+from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractReader
 from dataclasses import dataclass, field
 import cv2
 import imageio
-from ambf6dpose.DataCollection.AbstractReaderSaver import is_rotation, trnorm
+from ambf6dpose.DataCollection.ReaderSaverUtils import is_rotation, trnorm
 
 
 @dataclass

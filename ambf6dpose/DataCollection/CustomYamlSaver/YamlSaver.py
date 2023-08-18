@@ -10,15 +10,18 @@ from enum import Enum
 import yaml
 import png
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
-from ambf6dpose.DataCollection.AbstractReaderSaver import AbstractSaver
+from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractSaver
+from ambf6dpose.DataCollection.InOut import save_depth
+from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs, ImageSaver
 
-
-class ImgDirs(Enum):
-    RAW = "raw_img"
-    SEGMENTED = "segmented_img"
-    DEPTH = "depth_img"
-    BLENDED = "blended_img"
-
+def get_folder_names():
+    folder_names = {
+        ImgDirs.RAW: "raw_img",
+        ImgDirs.SEGMENTED: "segmented_img",
+        ImgDirs.DEPTH: "depth_img",
+        ImgDirs.GT_VISUALIZATION: "vis_img"
+    }
+    return folder_names
 
 class YamlFiles(Enum):
     EXTRINSIC = "extrinsic.yaml"
@@ -49,7 +52,7 @@ class SampleSaver(AbstractSaver):
         self.root.mkdir(exist_ok=True)
 
         if self.img_saver is None:
-            self.img_saver = ImageSaver(self.root)
+            self.img_saver = ImageSaver(self.root, get_folder_names())
 
         if self.yaml_saver is None:
             self.yaml_saver = YamlSaver(self.root)
@@ -74,49 +77,7 @@ class SampleSaver(AbstractSaver):
         self.yaml_saver.close()
 
 
-@dataclass
-class ImageSaver:
-    root_path: Path
-
-    def __post_init__(self):
-        self.root_path.mkdir(exist_ok=True)
-        self.dir_dict = self.get_img_dirs()
-        self.create_dir()
-
-    def get_img_dirs(self) -> Dict[ImgDirs, Path]:
-        img_dirs = {}
-        for imdir in ImgDirs:
-            img_dirs[imdir] = self.root_path / imdir.value
-        return img_dirs
-
-    def create_dir(self):
-        for dir in self.dir_dict.values():
-            dir.mkdir(exist_ok=True)
-
-    def save_sample(self, str_step: str, data: DatasetSample):
-        raw_path = str(self.dir_dict[ImgDirs.RAW] / f"{str_step}.png")
-        segmented_path = str(self.dir_dict[ImgDirs.SEGMENTED] / f"{str_step}.png")
-        cv2.imwrite(raw_path, data.raw_img)
-        cv2.imwrite(segmented_path, data.segmented_img)
-
-        # Save depth
-        self.save_depth(self.dir_dict[ImgDirs.DEPTH] / f"{str_step}.png", data.depth_img)
-
-        data.generate_blended_img()
-        blended_path = str(self.dir_dict[ImgDirs.BLENDED] / f"{str_step}.png")
-        cv2.imwrite(blended_path, data.blended_img)
     
-    def save_depth(self, path: str, depth_im:np.ndarray):
-        path = str(path)
-        if path.split('.')[-1].lower() != 'png':
-            raise ValueError('Only PNG format is currently supported.')
-
-        im_uint16 = np.round(depth_im).astype(np.uint16)
-
-        # PyPNG library can save 16-bit PNG and is faster than imageio.imwrite().
-        w_depth = png.Writer(depth_im.shape[1], depth_im.shape[0], greyscale=True, bitdepth=16)
-        with open(path, 'wb') as f:
-            w_depth.write(f, np.reshape(im_uint16, (-1, depth_im.shape[1])))
 
 
 @dataclass
