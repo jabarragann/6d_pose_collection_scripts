@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 import numpy as np
 import yaml
-from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlFiles, YamlKeys, ImgDirs, DatasetConsts
+from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlFiles, YamlKeys, ImgDirs, DatasetConsts, get_folder_names
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractReader
 from dataclasses import dataclass, field
@@ -45,8 +45,9 @@ class DatasetReader(AbstractReader):
             raise StopIteration
 
     def __init_dict_paths(self):
+        folder_names = get_folder_names()
         for img_dir in ImgDirs:
-            self.__dict_paths[img_dir] = self.root / img_dir.value
+            self.__dict_paths[img_dir] = self.root / folder_names[img_dir]
 
     def format_step(step: int) -> str:
         return f"{step:{DatasetConsts.FMT_STR.value}}"

@@ -6,7 +6,7 @@ import cv2
 from ambf6dpose import DatasetReader
 from surgical_robotics_challenge.units_conversion import SimToSI
 
-from ambf6dpose.DataCollection.CustomYamlSaver.DatasetBuilder import DatasetSample
+from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 
 
 def load_mesh(mesh_path):
@@ -113,10 +113,10 @@ def bop_rendering(model_path: Path, sample: DatasetSample):
 if __name__ == "__main__":
     mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled_mm.ply")
     # ds_path = Path("./scripts/6d_pose_sample_ds")
-    ds_path = Path("./test_ds")
+    ds_path = Path("./test_ds_good")
     dataset = DatasetReader(ds_path)
 
     vertices, mesh = load_mesh(mesh_path)
 
-    opencv_projection(vertices, dataset[5])
+    # opencv_projection(vertices, dataset[5])
     bop_rendering(mesh_path, dataset[5])
