@@ -8,6 +8,7 @@ import gc
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
+from attach_needle_modify import AttachNeedle
 from surgical_robotics_challenge.utils import coordinate_frames
 dynamic_path = os.path.abspath(__file__ + "/../")
 # data_path = os.path.abspath(__file__+"/../../../../")
@@ -172,7 +173,7 @@ if __name__ == '__main__':
     # cam.servo_jp([0.0, 0.05, -0.01, 0.0])
     time.sleep(0.5)
     psm1 = PSM(simulation_manager, 'psm1', add_joint_errors=False)
-    time.sleep(2.0)
+    time.sleep(0.5)
     # if psm1.is_present():
     #     print('psm1 run')
     #     T_psmtip_c = coordinate_frames.PSM1.T_tip_cam
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     #     psm1.set_home_pose(T_psmtip_b)
     #     time.sleep(1.0)
     psm2 = PSM(simulation_manager, 'psm2', add_joint_errors=False)
-    time.sleep(2.0)
+    time.sleep(0.5)
     # if psm2.is_present():
     #     print('psm2 run')
     #     T_psmtip_c = coordinate_frames.PSM2.T_tip_cam
@@ -191,16 +192,29 @@ if __name__ == '__main__':
     # assert len(psm1_pos) == len(psm2_pos), 'psm1 and psm2 run time not equal'
     #
     # cam.servo_jp(ecm_pos[0])
-    for i in range(len(psm1_pos)-1):
-        cam.servo_jp(ecm_pos[i])
-        psm1.servo_jp(psm1_pos[i])
-        # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
-        psm1.set_jaw_angle(psm1_jaw[i] )
-        psm2.servo_jp(psm2_pos[i])
-        psm2.set_jaw_angle(psm2_jaw[i])
-        time.sleep(0.01)
-        count += 1
-        print(count)
+
+
+    ### Add needle attachment code
+    # needle = simulation_manager.get_obj_handle('Needle')
+    # link1 = simulation_manager.get_obj_handle('psm1' + '/toolyawlink')
+    # link2 = simulation_manager.get_obj_handle('psm2' + '/toolyawlink')
+
+    # atn = AttachNeedle(needle, link1, link2)
+
+    # for i in range(len(psm1_pos)-1):
+    #     cam.servo_jp(ecm_pos[i])
+    #     psm1.servo_jp(psm1_pos[i])
+    #     # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
+    #     psm1.set_jaw_angle(psm1_jaw[i])
+    #     psm2.servo_jp(psm2_pos[i])
+    #     psm2.set_jaw_angle(psm2_jaw[i])
+    #     time.sleep(0.01)
+    #
+    #     # if (i > 2000) and (i < 4000):
+    #     #     atn.attach_needle(needle, link2, atn.offset_psm2)
+    #
+    #     count += 1
+    #     print(count)
 
     # # First we shall move the PSM to its initial pose using joint commands OR pose command
     # psm2.servo_jp([-0.4, -0.22, 0.139, -1.64, -0.37, -0.11])

@@ -10,5 +10,8 @@ test_d*
 .DS_Store
 temp
 
+/test_record
+/test_replay
+
 
 
