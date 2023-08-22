@@ -78,11 +78,11 @@ if __name__ == "__main__":
     client = SyncRosInterface()
     # client = RosInterface()
 
-    client.wait_until_first_sample(timeout=10)
+    client.wait_for_data(timeout=10)
 
     # Collect and process data
     sim_interface = SimulatorDataProcessor(client)
     sample = sim_interface.generate_dataset_sample()
-    sample.generate_blended_img()
+    sample.generate_gt_vis()
     cv2.imshow("blended", sample.blended_img)
     cv2.waitKey(0)

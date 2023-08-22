@@ -47,7 +47,7 @@ class DatasetConsts(Enum):
 
 
 @dataclass
-class SampleSaver(AbstractSaver):
+class BopSampleSaver(AbstractSaver):
     scene_id: int
     img_saver: ImageSaver = field(default=None)
     json_saver: JsonSaver = field(default=None)

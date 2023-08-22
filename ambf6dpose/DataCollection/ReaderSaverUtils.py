@@ -106,9 +106,11 @@ class ImageSaver:
         # Save depth
         save_depth(self.dir_dict[ImgDirs.DEPTH] / f"{str_step}.png", data.depth_img)
 
-        data.generate_blended_img()
-        blended_path = str(self.dir_dict[ImgDirs.GT_VISUALIZATION] / f"{str_step}.png")
-        cv2.imwrite(blended_path, data.blended_img)
+        # Generating gt_vis reduces the script performance 
+
+        # data.generate_gt_vis()
+        # blended_path = str(self.dir_dict[ImgDirs.GT_VISUALIZATION] / f"{str_step}.png")
+        # cv2.imwrite(blended_path, data.blended_img)
 
 def save_depth(path:Path, im:np.ndarray):
   """Saves a depth image (16-bit) to a PNG file.

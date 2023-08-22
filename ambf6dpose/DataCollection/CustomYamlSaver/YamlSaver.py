@@ -14,14 +14,16 @@ from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractSaver
 from ambf6dpose.DataCollection.InOut import save_depth
 from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs, ImageSaver
 
+
 def get_folder_names():
     folder_names = {
         ImgDirs.RAW: "raw_img",
         ImgDirs.SEGMENTED: "segmented_img",
         ImgDirs.DEPTH: "depth_img",
-        ImgDirs.GT_VISUALIZATION: "vis_img"
+        ImgDirs.GT_VISUALIZATION: "vis_img",
     }
     return folder_names
+
 
 class YamlFiles(Enum):
     EXTRINSIC = "extrinsic.yaml"
@@ -41,7 +43,7 @@ class DatasetConsts(Enum):
 
 
 @dataclass
-class SampleSaver(AbstractSaver):
+class YamlSampleSaver(AbstractSaver):
     img_saver: ImageSaver = field(default=None)
     yaml_saver: YamlSaver = field(default=None)
 
@@ -75,9 +77,6 @@ class SampleSaver(AbstractSaver):
 
     def close(self):
         self.yaml_saver.close()
-
-
-    
 
 
 @dataclass

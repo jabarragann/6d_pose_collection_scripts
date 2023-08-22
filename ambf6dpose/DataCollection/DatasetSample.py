@@ -11,7 +11,7 @@ class DatasetSample:
     intrinsic_matrix: np.ndarray
     blended_img: np.ndarray = field(default=None, init=False)
 
-    def generate_blended_img(self) -> None:
+    def generate_gt_vis(self) -> None:
         T_LN_CV2 = self.extrinsic_matrix
         img = self.raw_img.copy()
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 import click
 import cv2
-from ambf6dpose import DatasetReader, SampleSaver
+from ambf6dpose import DatasetReader, YamlSampleSaver
 
 
 @click.command()
@@ -17,8 +17,8 @@ def generate_dataset(path: str):
     blended_path.mkdir(exist_ok=True)
 
     for idx, sample in enumerate(dataset):
-        fmt_idx = SampleSaver.fmt_step(idx)
-        sample.generate_blended_img()
+        fmt_idx = YamlSampleSaver.fmt_step(idx)
+        sample.generate_gt_vis()
         cv2.imwrite(str(blended_path / f"{fmt_idx}.png"), sample.blended_img)
         print(f"Sample {fmt_idx}")
         print(sample.extrinsic_matrix)

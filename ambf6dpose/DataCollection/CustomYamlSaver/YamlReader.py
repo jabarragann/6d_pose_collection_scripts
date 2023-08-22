@@ -115,6 +115,6 @@ class DatasetReader(AbstractReader):
 if __name__ == "__main__":
     reader = DatasetReader(Path("./test_ds"))
     sample = reader[0]
-    sample.generate_blended_img()
+    sample.generate_gt_vis()
     cv2.imshow("raw", sample.blended_img)
     cv2.waitKey(0)

@@ -11,6 +11,7 @@ from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from surgical_robotics_challenge.utils import coordinate_frames
 from threading import Thread
+
 dynamic_path = os.path.abspath(__file__ + "/../../")
 # data_path = os.path.abspath(__file__+"/../../../../")
 print(dynamic_path)
@@ -45,45 +46,45 @@ def read_rosbag(rosbag_name):
 
     ### new bag replay
     for topic, msg, t in bag.read_messages(topics=topics[18]):
-        assert topic == '/psm1/setpoint_js', 'load incorrect topics for psm 1 jp'
+        assert topic == "/psm1/setpoint_js", "load incorrect topics for psm 1 jp"
         # psm1_pos_temp = msg.joint_positions[0:6]
         psm1_pos_temp = list(msg.data)
         psm1_pos.append(psm1_pos_temp)
         count += 1
-    print('psm 1 record count: ', count)
+    print("psm 1 record count: ", count)
     count = 0
 
     for topic, msg, t in bag.read_messages(topics=topics[17]):
-        assert topic == '/psm1/jaw/setpoint_js', 'load incorrect topics for psm 1 jaw'
+        assert topic == "/psm1/jaw/setpoint_js", "load incorrect topics for psm 1 jaw"
         psm1_jaw_temp = msg.data
         psm1_jaw.append(psm1_jaw_temp)
         count += 1
-    print('psm 1 jaw record count: ', count)
+    print("psm 1 jaw record count: ", count)
     count = 0
 
     for topic, msg, t in bag.read_messages(topics=topics[20]):
-        assert topic == '/psm2/setpoint_js', 'load incorrect topics for psm 2 jp'
+        assert topic == "/psm2/setpoint_js", "load incorrect topics for psm 2 jp"
         # psm1_pos_temp = msg.joint_positions[0:6]
         psm2_pos_temp = list(msg.data)
         psm2_pos.append(psm2_pos_temp)
         count += 1
-    print('psm 2 record count: ', count)
+    print("psm 2 record count: ", count)
     count = 0
 
     for topic, msg, t in bag.read_messages(topics=topics[19]):
-        assert topic == '/psm2/jaw/setpoint_js', 'load incorrect topics for psm 2 jaw'
+        assert topic == "/psm2/jaw/setpoint_js", "load incorrect topics for psm 2 jaw"
         psm2_jaw_temp = msg.data
         psm2_jaw.append(psm2_jaw_temp)
         count += 1
-    print('psm 2 jaw record count: ', count)
+    print("psm 2 jaw record count: ", count)
     count = 0
 
     for topic, msg, t in bag.read_messages(topics=topics[16]):
-        assert topic == '/ecm/setpoint_js', 'load incorrect topics for ecm jp'
+        assert topic == "/ecm/setpoint_js", "load incorrect topics for ecm jp"
         ecm_pos_temp = msg.data
         ecm_pos.append(ecm_pos_temp)
         count += 1
-    print('ecm record count: ', count)
+    print("ecm record count: ", count)
     return ecm_pos, psm1_pos, psm2_pos, psm1_jaw, psm2_jaw
 
 
@@ -97,25 +98,27 @@ def run_replay(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw):
         psm2.set_jaw_angle(psm2_jaw[i])
         time.sleep(0.01)
         count += 1
-        sys.stdout.write(f'\r Run Progress: {count} / {total_num}')
+        sys.stdout.write(f"\r Run Progress: {count} / {total_num}")
         sys.stdout.flush()
 
 
 def run_record(idx_i, idx_j, num_ecm):
     idx = idx_i * num_ecm + idx_j + 1
-    command_record = (f"python {os.path.join(dynamic_path, 'scripts', 'collect_data.py')} "
-                      f"--path {os.path.join(save_folder, f'test_{str(idx).zfill(3)}')}")
-    process_record = subprocess.Popen(command_record.split(' '))
+    command_record = (
+        f"python3 {os.path.join(dynamic_path, 'scripts', 'collect_data.py')} "
+        f"--path {os.path.join(save_folder)} "
+        f"--scene_id {idx}"
+    )
+    process_record = subprocess.Popen(command_record.split(" "))
     return process_record
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    data_folder = os.path.join(dynamic_path, 'test_replay')
-    save_folder = os.path.join(dynamic_path, 'test_record')
-    file_list = glob(os.path.join(data_folder, '*.bag'))
+    data_folder = os.path.join(dynamic_path, "test_replay")  ## add rosbags here!
+    save_folder = os.path.join(dynamic_path, "test_record")  ## folder to save images
+    file_list = glob(os.path.join(data_folder, "*.bag"))
 
     rosbag_name = file_list[0]
 
@@ -123,7 +126,7 @@ if __name__ == '__main__':
     # output_folder = os.path.join(dynamic_path, 'test_image')
     #
     if not os.path.exists(save_folder):
-        print('Create Save Folder')
+        print("Create Save Folder")
         os.makedirs(save_folder)
 
     # bag = rosbag.Bag(rosbag_name)
@@ -164,32 +167,32 @@ if __name__ == '__main__':
     # count = 0
     # gc.collect()
 
-    simulation_manager = SimulationManager('record_test')
+    simulation_manager = SimulationManager("record_test")
     time.sleep(0.2)
     w = simulation_manager.get_world_handle()
     time.sleep(0.2)
     w.reset_bodies()
     time.sleep(0.2)
-    cam = ECM(simulation_manager, 'CameraFrame')
+    cam = ECM(simulation_manager, "CameraFrame")
     # cam.servo_jp([0.0, 0.05, -0.01, 0.0])
     time.sleep(0.2)
-    psm1 = PSM(simulation_manager, 'psm1', add_joint_errors=False)
+    psm1 = PSM(simulation_manager, "psm1", add_joint_errors=False)
     time.sleep(0.2)
-    psm2 = PSM(simulation_manager, 'psm2', add_joint_errors=False)
+    psm2 = PSM(simulation_manager, "psm2", add_joint_errors=False)
     time.sleep(0.2)
 
     ### preset ECM pose in joint space
     ecm_list = []
-    ecm_list.append([0.0, 0.0, 0.0, 0.0]) # 0
-    ecm_list.append([0.0, 0.05, -0.01, 0.0]) # 1
-    ecm_list.append([0.0, 0.05, -0.01, 0.4]) # 2
-    ecm_list.append([0.0, 0.05, -0.01, -0.4]) # 3
-    ecm_list.append([0.2, 0.05, -0.01, 0.0]) # 4
-    ecm_list.append([-0.2, 0.05, -0.01, 0.0]) # 5
-    ecm_list.append([0.0, 0.15, -0.01, 0.0]) # 6
-    ecm_list.append([0.0, -0.05, -0.01, 0.0]) # 7
-    ecm_list.append([0.0, 0.05, -0.05, 0.0]) # 8
-    ecm_list.append([0.0, 0.05, 0.03, 0.0]) # 9
+    ecm_list.append([0.0, 0.0, 0.0, 0.0])  # 0
+    ecm_list.append([0.0, 0.05, -0.01, 0.0])  # 1
+    ecm_list.append([0.0, 0.05, -0.01, 0.4])  # 2
+    ecm_list.append([0.0, 0.05, -0.01, -0.4])  # 3
+    ecm_list.append([0.2, 0.05, -0.01, 0.0])  # 4
+    ecm_list.append([-0.2, 0.05, -0.01, 0.0])  # 5
+    ecm_list.append([0.0, 0.15, -0.01, 0.0])  # 6
+    ecm_list.append([0.0, -0.05, -0.01, 0.0])  # 7
+    ecm_list.append([0.0, 0.05, -0.05, 0.0])  # 8
+    ecm_list.append([0.0, 0.05, 0.03, 0.0])  # 9
     ecm_list.append([0.1, 0.05, -0.01, 0.2])  # 10
     ecm_list.append([-0.1, 0.05, -0.01, -0.2])  # 11
     ecm_list.append([0.1, 0.10, -0.01, 0.0])  # 12
@@ -224,9 +227,9 @@ if __name__ == '__main__':
         for j in range(num_ecm):
             t_replay = Thread(target=run_replay, args=(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw))
             t_record = ThreadWithReturn(target=run_record, args=(i, j, num_ecm))
-            cam.servo_jp(ecm_list[i])
+            cam.servo_jp(ecm_list[j])
             time.sleep(0.5)
-            print(f'\n Move to Camera Position {str(j).zfill(3)} ... \n')
+            print(f"\n Move to Camera Position {str(j).zfill(3)} ... \n")
             t_replay.start()
             t_record.start()
             t_replay.join()
@@ -235,4 +238,3 @@ if __name__ == '__main__':
             time.sleep(0.5)
             w.reset_bodies()
             time.sleep(1.0)
-

@@ -5,7 +5,11 @@ import rospy
 from dataclasses import dataclass, field
 from abc import ABC
 import message_filters
-from ambf6dpose.DataCollection.Rostopics import RosTopics, get_topics_processing_cb, topic_to_attr_dict
+from ambf6dpose.DataCollection.Rostopics import (
+    RosTopics,
+    get_topics_processing_cb,
+    topic_to_attr_dict,
+)
 
 
 @dataclass
@@ -31,14 +35,15 @@ class RawSimulationData:
         return any([e is None for e in attrs_values])
 
     @classmethod
-    def from_dict(cls:RawSimulationData, data: dict[RosTopics,np.ndarray]):
-        #Map the keys to the class attributes
+    def from_dict(cls: RawSimulationData, data: dict[RosTopics, np.ndarray]):
+        # Map the keys to the class attributes
         dict_variables = {}
-        for (key,value) in data.items():
+        for key, value in data.items():
             dict_variables[topic_to_attr_dict[key]] = value
         # dict_variable = {cls.topic_to_attr[key]:value for (key,value) in data.items()}
 
         return cls(**dict_variables)
+
 
 @dataclass
 class AbstractSimulationClient(ABC):
@@ -66,21 +71,21 @@ class AbstractSimulationClient(ABC):
         if self.raw_data is None:
             raise ValueError("No data has been received")
 
-        return self.raw_data
+        data = self.raw_data
+        self.raw_data = None
+        return data 
 
     def has_data(self) -> bool:
         return self.raw_data is not None
 
-    def wait_until_first_sample(self, verbose=True, timeout=10) -> None:
+    def wait_for_data(self, timeout=10) -> None:
         init_time = last_time = time.time()
         while not self.has_data():
             time.sleep(0.1)
             last_time = time.time()
             if last_time - init_time > timeout:
-                raise TimeoutError(f"Timeout waiting for first sample. Timeout: {timeout}s")
+                raise TimeoutError(f"Timeout waiting for data. No data received for {timeout}s")
 
-        if verbose:
-            print(f"Time to get first package data: {last_time - init_time:0.3f}s")
 
 @dataclass
 class SyncRosInterface(AbstractSimulationClient):
@@ -107,6 +112,7 @@ class SyncRosInterface(AbstractSimulationClient):
             raw_data_dict[topic] = self.callback_dict[topic](input_msg)
 
         self.raw_data = RawSimulationData.from_dict(raw_data_dict)
+
 
 ############################################
 ### OLD SIMULATION CLIENTS
