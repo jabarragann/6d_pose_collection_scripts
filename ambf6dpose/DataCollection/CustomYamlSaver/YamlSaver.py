@@ -11,7 +11,6 @@ import yaml
 import png
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractSaver
-from ambf6dpose.DataCollection.InOut import save_depth
 from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs, ImageSaver
 
 

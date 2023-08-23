@@ -80,7 +80,7 @@ class AbstractSimulationClient(ABC):
 
     def wait_for_data(self, timeout=10) -> None:
         init_time = last_time = time.time()
-        while not self.has_data():
+        while not self.has_data() and not rospy.is_shutdown():
             time.sleep(0.1)
             last_time = time.time()
             if last_time - init_time > timeout:

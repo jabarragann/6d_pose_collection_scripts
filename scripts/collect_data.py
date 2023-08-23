@@ -10,10 +10,12 @@ from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractSaver
 from ambf6dpose.DataCollection.BOPSaver.BopSaver import BopSampleSaver
 import signal
 
+interrupt_signal_received = False
+
 
 def signal_handler(sig, frame):
     print("\nClosing collection script")
-    sys.exit(0)
+    rospy.signal_shutdown("SIGINT received")
 
 
 def create_sample_saver(root: Path, type: str, scene_id: int) -> AbstractSaver:
@@ -49,11 +51,13 @@ def start_collection(
             if time.time() - last_time > sample_time:
                 wait_for_data(samples_generator.simulation_client)  # can trigger timeout exception
 
-                sample = samples_generator.generate_dataset_sample()
-                saver.save_sample(sample)
-                print(f" Sample: {count} Time from last sample: {time.time()-last_time:0.3f}")
-                last_time = time.time()
-                count += 1
+                # SigInt can occur while waiting for data
+                if not rospy.is_shutdown():
+                    sample = samples_generator.generate_dataset_sample()
+                    saver.save_sample(sample)
+                    print(f" Sample: {count} Time from last sample: {time.time()-last_time:0.3f}")
+                    last_time = time.time()
+                    count += 1
 
 
 @click.command()
