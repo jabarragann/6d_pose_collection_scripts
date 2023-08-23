@@ -51,8 +51,7 @@ class SimulatorDataProcessor:
         return T_LN_CV2
 
     def generate_dataset_sample(self) -> DatasetSample:
-        """ Transformations are saved in mm to comply with the BOP standard.
-        """
+        """Transformations are saved in mm to comply with the BOP standard."""
         raw_data = self.simulation_client.get_data()
         img = raw_data.camera_l_img
         seg_img = raw_data.camera_l_seg_img
@@ -60,7 +59,7 @@ class SimulatorDataProcessor:
 
         # Get extrinsics - Needle to CamL
         T_lcam_needle_CV2 = self.get_needle_extrinsics(raw_data)  # Needle(N) to CamL (L) (T_LN)
-        T_lcam_needle_CV2[:3,3] = T_lcam_needle_CV2[:3,3] * 1000 # convert from m to mm
+        T_lcam_needle_CV2[:3, 3] = T_lcam_needle_CV2[:3, 3] * 1000  # convert from m to mm
 
         # Get intrinsics
         K = self.get_intrinsics()
@@ -84,5 +83,5 @@ if __name__ == "__main__":
     sim_interface = SimulatorDataProcessor(client)
     sample = sim_interface.generate_dataset_sample()
     sample.generate_gt_vis()
-    cv2.imshow("blended", sample.blended_img)
+    cv2.imshow("blended", sample.gt_vis_img)
     cv2.waitKey(0)

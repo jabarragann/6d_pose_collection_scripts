@@ -2,7 +2,13 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 import numpy as np
 import yaml
-from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlFiles, YamlKeys, ImgDirs, DatasetConsts, get_folder_names
+from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import (
+    YamlFiles,
+    YamlKeys,
+    ImgDirs,
+    DatasetConsts,
+    get_folder_names,
+)
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractReader
 from dataclasses import dataclass, field
@@ -13,7 +19,6 @@ from ambf6dpose.DataCollection.ReaderSaverUtils import is_rotation, trnorm
 
 @dataclass
 class DatasetReader(AbstractReader):
-
     def __post_init__(self):
         self.__dict_paths: Dict[ImgDirs, Path] = {}
         self.__init_dict_paths()
@@ -56,7 +61,7 @@ class DatasetReader(AbstractReader):
         if key > DatasetConsts.MAX_STEP.value or key < 0:
             raise IndexError
         else:
-            return self.construct_sample(key) 
+            return self.construct_sample(key)
 
     def construct_sample(self, key: int) -> DatasetSample:
         step_str = DatasetReader.format_step(key)
@@ -67,14 +72,14 @@ class DatasetReader(AbstractReader):
         sample = DatasetSample(
             raw_img=cv2.imread(raw_path),
             segmented_img=cv2.imread(seg_path),
-            depth_img = self.load_depth(depth_path), 
+            depth_img=self.load_depth(depth_path),
             extrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
             intrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.INTRINSIC, step_str),
         )
         return sample
 
     def load_depth(self, path):
-        d:np.ndarray = imageio.imread(path)
+        d: np.ndarray = imageio.imread(path)
         return d.astype(np.float32)
 
     def get_matrix_from_yaml(self, yaml_type: YamlFiles, key: str) -> np.ndarray:
@@ -116,5 +121,5 @@ if __name__ == "__main__":
     reader = DatasetReader(Path("./test_ds"))
     sample = reader[0]
     sample.generate_gt_vis()
-    cv2.imshow("raw", sample.blended_img)
+    cv2.imshow("raw", sample.gt_vis_img)
     cv2.waitKey(0)

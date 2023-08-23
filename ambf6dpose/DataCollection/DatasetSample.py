@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import cv2
 import numpy as np
 
+
 @dataclass
 class DatasetSample:
     raw_img: np.ndarray
@@ -9,7 +10,7 @@ class DatasetSample:
     depth_img: np.ndarray
     extrinsic_matrix: np.ndarray
     intrinsic_matrix: np.ndarray
-    blended_img: np.ndarray = field(default=None, init=False)
+    gt_vis_img: np.ndarray = field(default=None, init=False)
 
     def generate_gt_vis(self) -> None:
         T_LN_CV2 = self.extrinsic_matrix
@@ -37,4 +38,4 @@ class DatasetSample:
         for i in range(img_pt.shape[0]):
             img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
 
-        self.blended_img = img
+        self.gt_vis_img = img

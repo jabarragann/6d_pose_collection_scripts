@@ -198,8 +198,8 @@ if __name__ == "__main__":
     print(f"Dataset size: {len(reader)}")
 
     idx = 111
-    sample = reader[idx]
+    sample: DatasetSample = reader[idx]
     scene_id, img_name = reader.get_metadata(idx)
     sample.generate_gt_vis()
-    cv2.imshow(f"{scene_id}-{img_name}", sample.blended_img)
+    cv2.imshow(f"{scene_id}-{img_name}", sample.gt_vis_img)
     cv2.waitKey(0)

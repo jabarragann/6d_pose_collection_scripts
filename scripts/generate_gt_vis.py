@@ -19,7 +19,7 @@ def generate_dataset(path: str):
     for idx, sample in enumerate(dataset):
         fmt_idx = YamlSampleSaver.fmt_step(idx)
         sample.generate_gt_vis()
-        cv2.imwrite(str(blended_path / f"{fmt_idx}.png"), sample.blended_img)
+        cv2.imwrite(str(blended_path / f"{fmt_idx}.png"), sample.gt_vis_img)
         print(f"Sample {fmt_idx}")
         print(sample.extrinsic_matrix)
 
