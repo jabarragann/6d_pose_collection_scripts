@@ -62,6 +62,9 @@ class BopSampleSaver(AbstractSaver):
     def __post_init__(self):
         self.__internal_step = 0
 
+        if isinstance(self.scene_id, str):
+            self.scene_id = int(self.scene_id)
+
         self.root = self.root / self.fmt_step(self.scene_id)
         self.root.mkdir(exist_ok=True, parents=True)
 
@@ -115,13 +118,16 @@ class JsonSaver(ABC):
 
     root: Path
     save_every: int = 4
+    scene_camera_name: str = GroundTruthFiles.SCENE_CAMERA.value
+    scene_gt_name: str = GroundTruthFiles.SCENE_GT.value
+    safe_save: bool = True
 
     def __post_init__(self):
         self.exit_stack = ExitStack()  # Manage json files opening and closing
-        self.scene_camera_path = self.root / GroundTruthFiles.SCENE_CAMERA.value
-        self.scene_gt_path = self.root / GroundTruthFiles.SCENE_GT.value
+        self.scene_camera_path = self.root / self.scene_camera_name
+        self.scene_gt_path = self.root / self.scene_gt_name
 
-        if self.scene_gt_path.exists():
+        if self.scene_gt_path.exists() and self.safe_save:
             msg = (
                 f"GT file: {self.scene_gt_path} already exists. Do you want to overwrite it? (y/n) "
             )
@@ -135,6 +141,12 @@ class JsonSaver(ABC):
         self.scene_gt: Dict[int, List[Dict[str, Any]]] = {}
         self.scene_camera: Dict[int, Dict[str, Any]] = {}
 
+        self.__internal_step = 0
+
+    def __enter__(self):
+        self.open_files()
+        return self
+
     def open_files(self):
         # Trigger the __enter__ method of the File managers
         self.exit_stack.enter_context(self.scene_gt_file)
@@ -145,9 +157,11 @@ class JsonSaver(ABC):
         self.add_to_scene_camera(im_id, data.intrinsic_matrix)
         self.add_to_scene_gt(im_id, obj_id, data.extrinsic_matrix)
 
-        if im_id % self.save_every == 0:
+        if self.__internal_step % self.save_every == 0:
             self.save_scene_camera()
             self.save_scene_gt()
+
+        self.__internal_step += 1
 
     def add_to_scene_camera(self, im_id: int, intrinsic_matrix: np.ndarray):
         self.scene_camera[im_id] = {
@@ -194,6 +208,9 @@ class JsonSaver(ABC):
 
         # Clear the dictionary.
         self.scene_camera = {}
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
 
     def close(self):
         self.save_scene_camera()

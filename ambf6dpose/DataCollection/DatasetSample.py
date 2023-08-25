@@ -12,9 +12,8 @@ class DatasetSample:
     intrinsic_matrix: np.ndarray
     gt_vis_img: np.ndarray = field(default=None, init=False)
 
-    def generate_gt_vis(self) -> None:
+    def project_model_points(self) -> np.ndarray:
         T_LN_CV2 = self.extrinsic_matrix
-        img = self.raw_img.copy()
 
         # Project center of the needle with OpenCv
         rvecs, _ = cv2.Rodrigues(T_LN_CV2[:3, :3])
@@ -34,6 +33,12 @@ class DatasetSample:
             np.float32([0, 0, 0, 0, 0]),
         )
 
+        return img_pt
+
+
+    def generate_gt_vis(self) -> None:
+        img = self.raw_img.copy()
+        img_pt = self.project_model_points()
         # Display image
         for i in range(img_pt.shape[0]):
             img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
