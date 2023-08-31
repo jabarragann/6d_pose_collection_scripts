@@ -42,10 +42,12 @@ class BopReader(AbstractReader):
     scene_id_list: List[int] = field(default_factory=list)  # If empty, read all scenes
 
     def __post_init__(self):
-        if self.dataset_split_type is not None:
-            self.dataset_split_complete = self.dataset_split + "_" + self.dataset_split_type
-        else:
+        if self.dataset_split_type is None:
+            self.dataset_split = ""
+        if len(self.dataset_split_type) == 0:
             self.dataset_split_complete = self.dataset_split
+        else:
+            self.dataset_split_complete = self.dataset_split + "_" + self.dataset_split_type
 
         self.root = self.root / self.dataset_split_complete
         assert self.root.exists(), f"Path {self.root} does not exist"
@@ -215,8 +217,8 @@ if __name__ == "__main__":
     reader = BopReader(
         root=Path(root_path2),
         scene_id_list=[],
-        dataset_split="train",
-        dataset_split_type="env1_automated1",
+        dataset_split="test",
+        dataset_split_type="",
     )
 
     # root_path = "/home/juan1995/research_juan/accelnet_grant/6d_pose_dataset_collection/test_ds_bop"

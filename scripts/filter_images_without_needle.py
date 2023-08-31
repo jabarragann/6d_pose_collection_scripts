@@ -48,7 +48,6 @@ def filter_imgs(root: Path, reader: BopReader, dryrun: bool):
 
     with saver_manager.create_savers(root, reader.scene_id_list) as savers_dict:
         for idx, sample in enumerate(reader):
-
             scene_id, img_name = reader.get_metadata(idx)
             img_id = int(img_name[:-4])
 
@@ -118,8 +117,8 @@ def filter_img_without_needle(dryrun=False):
     reader = BopReader(
         root=Path(root_path2),
         scene_id_list=[],
-        dataset_split="train",
-        dataset_split_type="env1_automated1",
+        dataset_split="test",
+        dataset_split_type="",
     )
 
     # saver = JsonSaver(

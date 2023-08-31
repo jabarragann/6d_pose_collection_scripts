@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import json
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 import cv2
 import numpy as np
 from enum import Enum
@@ -120,7 +120,7 @@ class JsonSaver(ABC):
     save_every: int = 4
     scene_camera_name: str = GroundTruthFiles.SCENE_CAMERA.value
     scene_gt_name: str = GroundTruthFiles.SCENE_GT.value
-    safe_save: bool = True
+    safe_save: bool = False
 
     def __post_init__(self):
         self.exit_stack = ExitStack()  # Manage json files opening and closing
@@ -221,10 +221,20 @@ class JsonSaver(ABC):
 @dataclass
 class JsonFileManager:
     path: Path
+    store_data_as: str = "dict"
+
+    def __post_init__(self):
+        assert self.store_data_as in ["dict", "list"], "store_data_as must be either dict or list"
+        if self.store_data_as == "dict":
+            self.opening_char = "{\n"
+            self.closing_char = "\n}"
+        elif self.store_data_as == "list":
+            self.opening_char = "[\n"
+            self.closing_char = "\n]"
 
     def __enter__(self):
         self.file = open(self.path, "wt", encoding="utf-8")
-        self.file.write("{\n")  # Opening bracket
+        self.file.write(self.opening_char)  # Opening bracket
 
         return self.file
 
@@ -235,16 +245,23 @@ class JsonFileManager:
         """
 
         self.file.seek(self.file.tell() - 2, 0)  # Remove last comma
-        self.file.write("\n}")  # Closing bracket
+        self.file.write(self.closing_char)  # Closing bracket
         self.file.close()
 
-    def save_json(self, content: dict[Enum, Any]):
+    def save_json(self, content: Union[dict[str, Any], List[Any]]):
         """Saves the provided content to a JSON file.
         Taken from BOP toolkit
 
         :param content: Dictionary/list to save.
         """
-        assert isinstance(content, dict)
+
+        if self.store_data_as == "dict":
+            self._save_dict(content)
+        elif self.store_data_as == "list":
+            self._save_list(content)
+
+    def _save_dict(self, content: dict[str, Any]):
+        assert isinstance(content, dict), "content must be dict when store_data_as is dict"
 
         content_sorted = sorted(content.items(), key=lambda x: x[0])
         for elem_id, (k, v) in enumerate(content_sorted):
@@ -252,17 +269,24 @@ class JsonFileManager:
             self.file.write(",")
             self.file.write("\n")
 
-    def replace_enum_keys(self, content: dict[Enum, Any]) -> dict[str, Any]:
-        new_dict = defaultdict(dict)
-        print(content)
-        for img_id, content_dict in content.items():
-            for k, v in content_dict.items():
-                if isinstance(k, Enum):
-                    new_dict[img_id][k.value] = v
-                else:
-                    new_dict[img_id][k] = v
+    def _save_list(self, content: List[Any]):
+        assert isinstance(content, list), "content must be a list when store_data_as is list"
+        for elem_id, elem in enumerate(content):
+            self.file.write("  {}".format(json.dumps(elem, sort_keys=True)))
+            self.file.write(",")
+            self.file.write("\n")
 
-        return dict(new_dict)
+    # def replace_enum_keys(self, content: dict[Enum, Any]) -> dict[str, Any]:
+    #     new_dict = defaultdict(dict)
+    #     print(content)
+    #     for img_id, content_dict in content.items():
+    #         for k, v in content_dict.items():
+    #             if isinstance(k, Enum):
+    #                 new_dict[img_id][k.value] = v
+    #             else:
+    #                 new_dict[img_id][k] = v
+
+    #     return dict(new_dict)
 
 
 def _scene_gt_as_json(scene_gt):
