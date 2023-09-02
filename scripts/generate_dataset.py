@@ -105,9 +105,15 @@ class RecorderManager:
     type=IntListParamType(" ", ignore_empty=True),
 )
 def generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_positions):
+    """
+    Collect 6d pose data from multiple view points
+    """
     # Get ecm positions
     ecm_full_list = get_camera_positions()
-    assert all([i > 0 for i in ecm_positions]), "ECM positions must be positive integers"
+    if len(ecm_positions) == 0:
+        ecm_positions = list(range(0, len(ecm_full_list)))
+    print(ecm_positions)
+    assert all([i >= 0 for i in ecm_positions]), "ECM positions must be positive integers"
     assert all(
         [i < len(ecm_full_list) for i in ecm_positions]
     ), f"Only {len(ecm_full_list)} ECM positions are available"
