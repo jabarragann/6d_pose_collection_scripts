@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List
+import click
 from ambf6dpose.DataCollection.BOPSaver.BopReader import BopReader
 from ambf6dpose.DataCollection.BOPSaver.BopSaver import BopSampleSaver, JsonSaver, get_folder_names
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
@@ -7,9 +8,10 @@ from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs
 import cv2
 from contextlib import ExitStack
 import shutil
+from tqdm import tqdm
 
 # root_path = "/home/juan1995/research_juan/accelnet_grant/6d_pose_dataset_collection/test_ds_bop"
-root_path2 = "/home/juan1995/research_juan/accelnet_grant/BenchmarkFor6dObjectPose/BOP_datasets/ambf_suturing"
+# root_path2 = "/home/juan1995/research_juan/accelnet_grant/BenchmarkFor6dObjectPose/BOP_datasets/ambf_suturing"
 
 
 class SaversManager:
@@ -41,13 +43,13 @@ class SaversManager:
         self.exit_stack.close()
 
 
-def filter_imgs(root: Path, reader: BopReader, dryrun: bool):
+def filter_imgs(root: Path, reader: BopReader):
     img_folders = get_folder_names()
     removed_images = root.parent / (root.name + "_removed_images")
     saver_manager = SaversManager()
 
     with saver_manager.create_savers(root, reader.scene_id_list) as savers_dict:
-        for idx, sample in enumerate(reader):
+        for idx, sample in tqdm(enumerate(reader), total=len(reader), desc="Filtering images"):
             scene_id, img_name = reader.get_metadata(idx)
             img_id = int(img_name[:-4])
 
@@ -110,26 +112,26 @@ def filter_imgs(root: Path, reader: BopReader, dryrun: bool):
     # cv2.waitKey(0)
 
 
-def filter_img_without_needle(dryrun=False):
-    # reader = BopReader(
-    #     root=Path(root_path), scene_id=[], dataset_split="test", dataset_split_type="ds_bop"
-    # )
+@click.command()
+@click.option(
+    "--root_path", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path)
+)
+@click.option("-s", "--dataset_split", help="train or test", type=click.Choice(["train", "test"]))
+@click.option(
+    "-t", "--dataset_split_type", default=None, help="ds split type. see bop toolkit data format."
+)
+def filter_img_without_needle(root_path: Path, dataset_split: str, dataset_split_type: str):
     reader = BopReader(
-        root=Path(root_path2),
+        root=Path(root_path),
         scene_id_list=[],
-        dataset_split="test",
-        dataset_split_type="",
+        dataset_split=dataset_split,
+        dataset_split_type=dataset_split_type,
     )
 
-    # saver = JsonSaver(
-    #     root=Path(root_path2),
-    #     scene_gt_name="scene_gt_corrected.json",
-    #     scene_camera_name="scene_camera_corrected.json",
-    # )
-    print(f"Dataset size: {len(reader)}")
+    print("Loading:")
+    reader.print_ds_info()
 
-    # with saver:
-    filter_imgs(reader.root, reader, dryrun=False)
+    filter_imgs(reader.root, reader)
 
 
 if __name__ == "__main__":
