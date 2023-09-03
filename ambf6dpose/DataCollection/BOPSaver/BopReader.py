@@ -60,6 +60,13 @@ class BopReader(AbstractReader):
         self.__internal_idx: int = 0
         self.__dataset_size: int = self.calculate_size()
 
+    def print_ds_info(self):
+        print(f"Dataset: {self.root.parent.name}")
+        print(f"Dataset split: {self.dataset_split_complete}")
+        print(f"Number of scenes: {len(self.scene_id_list)}")
+        print(f"Number of images: {len(self)}")
+        print("\n")
+
     def __len__(self) -> int:
         return self.__dataset_size
 

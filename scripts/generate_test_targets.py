@@ -13,7 +13,7 @@ def main():
         dataset_split_type="",
     )
 
-    json_file = JsonFileManager("test.json", store_data_as="list")
+    json_file = JsonFileManager("test_targets_bop19.json", store_data_as="list")
     data = []
     with json_file:
         for i in range(len(reader)):
