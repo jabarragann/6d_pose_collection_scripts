@@ -102,13 +102,14 @@ def run_replay(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw):
         sys.stdout.flush()
 
 
-def run_record(idx_i, idx_j, num_ecm):
+def run_record(save_folder, idx_i, idx_j, num_ecm):
     idx = idx_i * num_ecm + idx_j + 1
     command_record = (
         f"python3 {os.path.join(dynamic_path, 'scripts', 'collect_data.py')} "
-        f"--path {os.path.join(save_folder)} "
+        f"--path {save_folder} "
         f"--scene_id {idx}"
     )
+    # os.path.join(save_folder, str(idx).zfill(6))
     process_record = subprocess.Popen(command_record.split(" "))
     return process_record
 
@@ -226,7 +227,7 @@ if __name__ == "__main__":
         gc.collect()
         for j in range(num_ecm):
             t_replay = Thread(target=run_replay, args=(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw))
-            t_record = ThreadWithReturn(target=run_record, args=(i, j, num_ecm))
+            t_record = ThreadWithReturn(target=run_record, args=(save_folder, i, j, num_ecm))
             cam.servo_jp(ecm_list[j])
             time.sleep(0.5)
             print(f"\n Move to Camera Position {str(j).zfill(3)} ... \n")
