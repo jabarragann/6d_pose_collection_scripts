@@ -106,7 +106,7 @@ def run_record(dynamic_path, save_folder, idx_i, idx_j, num_ecm):
     idx = idx_i * num_ecm + idx_j + 1
     command_record = (
         f"python3 {os.path.join(dynamic_path, 'scripts', 'collect_data.py')} "
-        f"--path {save_folder}"
+        f"--path {save_folder} "
         f"--scene_id {idx}"
     )
     # os.path.join(save_folder, str(idx).zfill(6))
