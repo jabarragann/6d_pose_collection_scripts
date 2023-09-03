@@ -238,3 +238,6 @@ if __name__ == "__main__":
             time.sleep(0.5)
             w.reset_bodies()
             time.sleep(1.0)
+            psm1.move_jp(psm1_pos[0])
+            psm2.move_jp(psm2_pos[0])
+            time.sleep(4.0)
