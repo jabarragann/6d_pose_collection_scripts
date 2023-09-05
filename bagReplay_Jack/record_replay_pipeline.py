@@ -221,6 +221,10 @@ if __name__ == "__main__":
     #     cam.servo_jp(ecm_list[idx])
     #     input('Press Enter to continue ...')
 
+    # ecm_pos, psm1_pos, psm2_pos, psm1_jaw, psm2_jaw = read_rosbag(rosbag_name)
+    # print(psm1_pos[0])
+    # print(psm2_pos[0])
+
     for i in range(len(file_list)):
         rosbag_name = file_list[i]
         ecm_pos, psm1_pos, psm2_pos, psm1_jaw, psm2_jaw = read_rosbag(rosbag_name)
