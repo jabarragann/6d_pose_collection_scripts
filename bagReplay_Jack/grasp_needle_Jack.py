@@ -137,49 +137,92 @@ if __name__ == "__main__":
     psm2.set_jaw_angle(0.7)
     time.sleep(3.0)
 
-    needle_topic = NeedleInitialization(simulation_manager)
     psm2_tip = simulation_manager.get_obj_handle('psm2/toolyawlink')
     # Sanity sleep
     time.sleep(0.5)
     # This method will automatically start moving the needle to be with the PSM2's jaws
-    needle_topic.move_to(psm2_tip)
+
+
+    #### test pose info
+    # T_tINw = psm2_tip.get_pose()
+    # # T_des[0:3, 0:3] = T_tINw.M
+    # # T_des[0:3, 3] = T_tINw.p
+    #
+    # T_p_b = psm2.get_T_b_w()  # from base to psm
+    # T_b_p = psm2.get_T_w_b()  # from psm to base
+    # psm2_pose_cp = psm2.measured_cp()
+    # psm2_pose = psm2.measured_jp()
+    # psm2_pose.append(0.0)
+    # s1 = compute_FK(psm2_pose, 7)
+    # s2 = compute_FK(psm2_pose, 6)
+    # L_yaw2ctrlpnt = 0.0106
+    # T_psmtip_offset = Frame(Rotation.RPY(0, 0, 0),
+    #                  L_yaw2ctrlpnt * Vector(0.0, 0.0, 1.0)) ## (0,0,-1)
+    # T_PinchJoint_7 = Frame(Rotation.RPY(0, 0, 0),
+    #                        L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
+    # # Pinch Joint in Origin
+    # # T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
+    #
+    # T_psm_yaw = convert_mat_to_frame(s2)
+    # T_test = T_p_b * T_psm_yaw ## == TtInw
+    # test_ik = compute_IK(T_psm_yaw*T_psmtip_offset)
+
+
+
+    ##### attach needle #######
+    T_needle_psmtip = coordinate_frames.Needle.T_center_psmtip
+    T_needle_psmtip_far = T_needle_psmtip * Frame(Rotation.RPY(0., 0., 0.),
+                                                  Vector(0., 0., -0.010))
+    print('Moving Needle to PSM 2 Tip')
+    T_nINw = needle.get_pose()  ################################## replace this line ###############################
+    T_tINw = psm2_tip.get_pose()
+    # First reach the farther point
+    reached_flag = False
+    done = False
+    print('Move to a nearby pose')
+    while not done:
+        T_nINw_cmd = T_tINw * T_needle_psmtip_far
+        T_delta, done = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01, 0.005)
+        r_delta = T_delta.M.GetRPY()
+        # print(error_max)
+        T_cmd = Frame()
+        T_cmd.p = T_nINw.p + T_delta.p
+        T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+        T_nINw = T_cmd
+        needle.set_pose(T_cmd)
+        time.sleep(0.01)
+    print('Moved to the nearby pose')
+
     time.sleep(0.5)
+    done = False
+    T_nINw = needle.get_pose() ################################## replace this line ###############################
+    T_tINw = psm2_tip.get_pose()
+    print('Move to the desired pose')
+    while not done:
+        T_nINw_cmd = T_tINw * T_needle_psmtip
+        T_delta, done = cartesian_interpolate_step(T_nINw, T_nINw_cmd, 0.01, 0.005)
+        r_delta = T_delta.M.GetRPY()
+        T_cmd = Frame()
+        T_cmd.p = T_nINw.p + T_delta.p
+        T_cmd.M = T_nINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
+        T_nINw = T_cmd
+        needle.set_pose(T_cmd)
+        time.sleep(0.01)
+    time.sleep(0.5)
+
+    print('Moved to the desired pose')
+
+    print('Close the jaw')
     for i in range(30):
-        # Close the jaws to grasp the needle
-        # Calling it repeatedly a few times so that the needle is forced
-        # between the gripper tips and grasped properly
         psm2.set_jaw_angle(0.0)
         time.sleep(0.01)
     time.sleep(0.5)
-    # Don't forget to release the needle control loop to move it freely.
-    needle_topic.release()
+    print('Release the needle')
+    needle.set_force(Vector(0, 0, 0))
+    needle.set_torque(Vector(0, 0, 0))
     time.sleep(2.0)
-    # Open the jaws to let go of the needle from grasp
-    psm2.set_jaw_angle(0.0)
-    time.sleep(2.0)
+    # # Open the jaws if required
+    # psm2.set_jaw_angle(0.7)
+    # time.sleep(2.0)
 
-    T_tINw = psm2_tip.get_pose()
-    T_des = np.zeros((4, 4))
-    rot_des = R.from_quat(T_tINw.M.GetQuaternion()).as_matrix()
-    pos_des = np.array([T_tINw.p.x(), T_tINw.p.y(), T_tINw.p.z()])
-    # T_des[0:3, 0:3] = T_tINw.M
-    # T_des[0:3, 3] = T_tINw.p
 
-    T_p_b = psm2.get_T_b_w()  # from base to psm
-    T_b_p = psm2.get_T_w_b()  # from psm to base
-    psm2_pose_cp = psm2.measured_cp()
-    psm2_pose = psm2.measured_jp()
-    psm2_pose.append(0.0)
-    s1 = compute_FK(psm2_pose, 7)
-    s2 = compute_FK(psm2_pose, 6)
-    L_yaw2ctrlpnt = 0.0106
-    T_psmtip_offset = Frame(Rotation.RPY(0, 0, 0),
-                     L_yaw2ctrlpnt * Vector(0.0, 0.0, 1.0)) ## (0,0,-1)
-    T_PinchJoint_7 = Frame(Rotation.RPY(0, 0, 0),
-                           L_yaw2ctrlpnt * Vector(0.0, 0.0, -1.0))
-    # Pinch Joint in Origin
-    # T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
-
-    T_psm_yaw = convert_mat_to_frame(s2)
-    T_test = T_p_b * T_psm_yaw ## == TtInw
-    test_ik = compute_IK(T_psm_yaw*T_psmtip_offset)
