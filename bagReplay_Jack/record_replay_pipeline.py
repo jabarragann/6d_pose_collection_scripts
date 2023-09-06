@@ -241,6 +241,10 @@ if __name__ == "__main__":
             process_record = t_record.join()
             process_record.terminate()
             time.sleep(0.5)
+            # open the jaw
+            psm1.set_jaw_angle(0.7)
+            psm2.set_jaw_angle(0.7)
+            time.sleep(0.5)
             psm1.move_jp([0,0,0,0,0,0])
             psm2.move_jp([0,0,0,0,0,0])
             time.sleep(4.0)
