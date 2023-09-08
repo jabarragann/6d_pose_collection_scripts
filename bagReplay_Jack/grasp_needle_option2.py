@@ -224,5 +224,3 @@ if __name__ == "__main__":
     # # Open the jaws if required
     # psm2.set_jaw_angle(0.7)
     # time.sleep(2.0)
-
-
