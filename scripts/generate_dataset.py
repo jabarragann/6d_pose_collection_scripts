@@ -14,6 +14,7 @@ import ambf6dpose.RosBagReplay.RosbagUtils as rosbagutils
 import click
 from pathlib import Path
 from click_params import IntListParamType
+import numpy as np
 
 root_path = Path(__file__ + "/../../").resolve()
 
@@ -40,6 +41,14 @@ def get_camera_positions() -> List[List[float]]:
     ecm_list.append([-0.1, 0.0, -0.01, -0.1])  # 17
     ecm_list.append([0.1, 0.10, -0.04, -0.1])  # 18
     ecm_list.append([-0.1, 0.0, 0.02, 0.1])  # 19
+
+    # Add random noise to ECM joint positions
+    for i in range(len(ecm_list)):
+        ecm_list[i][0] += 0.15 * (2 * np.random.rand() - 1)
+        ecm_list[i][1] += 0.15 * (2 * np.random.rand() - 1)
+        ecm_list[i][2] += 0.01 * (2 * np.random.rand() - 1)
+        ecm_list[i][3] += 0.15 * (2 * np.random.rand() - 1)
+
     return ecm_list
 
 
@@ -57,10 +66,15 @@ def setup_sigint_handler(bag_player: rosbagutils.RosbagReplayer):
 
 
 class RecorderManager:
-    def __init__(self):
+    def __init__(self, dryrun: bool = False):
+        self.dryrun = dryrun
         pass
 
     def run_record(self, scene_id, save_folder):
+        if self.dryrun:
+            print("Dryrun. Data will not be recorded")
+            return self
+
         command_record = (
             f"python3 {os.path.join(root_path, 'scripts', 'collect_data.py')} "
             f"--path {os.path.join(save_folder)} "
@@ -75,9 +89,10 @@ class RecorderManager:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.record_pid.send_signal(signal.SIGINT)
-        print("closing recorder...")
-        time.sleep(1.0)
+        if not self.dryrun:
+            self.record_pid.send_signal(signal.SIGINT)
+            print("closing recorder...")
+            time.sleep(1.0)
 
 
 @click.command()
@@ -104,7 +119,13 @@ class RecorderManager:
     e.g., '1 2 3'. Default value: all available positions",
     type=IntListParamType(" ", ignore_empty=True),
 )
-def generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_positions):
+@click.option(
+    "--dryrun",
+    is_flag=True,
+    default=False,
+    help="If given data will not be recorded"
+)
+def generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_positions, dryrun):
     """
     Collect 6d pose data from multiple view points
     """
@@ -126,11 +147,16 @@ def generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_positions):
     [p.mkdir(parents=True, exist_ok=True) for p in [save_folder, bag_folder]]
     bag_folder = Path(bag_folder)
 
-    run_generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_jp_list, scene_ids)
+    run_generate_dataset(save_folder, bag_folder, percent_to_replay, ecm_jp_list, scene_ids, dryrun=dryrun)
 
 
 def run_generate_dataset(
-    save_folder, bag_folder, percent_to_replay, ecm_jp_list: List[List[float]], scene_ids: List[int]
+    save_folder,
+    bag_folder,
+    percent_to_replay,
+    ecm_jp_list: List[List[float]],
+    scene_ids: List[int],
+    dryrun: bool = False,
 ):
     """
     Collect data using the rosbag in bag_folder for every ecm position in ecm_positions. Ecm positions are specified
@@ -139,7 +165,7 @@ def run_generate_dataset(
     file_list = list(bag_folder.glob("*.bag"))
 
     # Setup recorder and bag player
-    recorder_manager = RecorderManager()
+    recorder_manager = RecorderManager(dryrun=dryrun)
     bag_player = rosbagutils.RosbagReplayer()
     setup_sigint_handler(bag_player)
 
