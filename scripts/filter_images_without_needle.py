@@ -114,7 +114,7 @@ def filter_imgs(root: Path, reader: BopReader):
 
 @click.command()
 @click.option(
-    "--root_path", type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path)
+    "--root_path", required=True, type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path)
 )
 @click.option("-s", "--dataset_split", help="train or test", type=click.Choice(["train", "test"]))
 @click.option(
