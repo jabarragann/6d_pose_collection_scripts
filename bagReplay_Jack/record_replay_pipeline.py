@@ -14,7 +14,7 @@ from threading import Thread
 
 dynamic_path = os.path.abspath(__file__ + "/../../")
 # data_path = os.path.abspath(__file__+"/../../../../")
-print(dynamic_path)
+# print(dynamic_path)
 sys.path.append(dynamic_path)
 
 

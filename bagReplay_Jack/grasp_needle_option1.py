@@ -68,7 +68,7 @@ if __name__ == "__main__":
     time.sleep(0.2)
     w = simulation_manager.get_world_handle()
     time.sleep(0.2)
-    w.reset_bodies()
+    # w.reset_bodies()
     time.sleep(0.2)
     cam = ECM(simulation_manager, "CameraFrame")
     cam.servo_jp([0.0, 0.05, -0.01, 0.0])
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     time.sleep(0.5)
     T_tINw_test = psm2_tip.get_pose()
 
-    T_p_b = psm2.get_T_b_w()  # from base to psm
-    T_b_p = psm2.get_T_w_b()  # from psm to base
+    T_psm_w_b = psm2.get_T_b_w()  # from world to PSM base
+    T_psm_b_w = psm2.get_T_w_b()  # from PSM base to world
     psm2_pose_cp = psm2.measured_cp()
     psm2_pose = psm2.measured_jp()
     psm2_pose.append(0.0)
@@ -127,18 +127,22 @@ if __name__ == "__main__":
     # Pinch Joint in Origin
     # T_PinchJoint_0 = T_7_0 * T_PinchJoint_7
 
-    T_psmyaw_w = T_p_b * T_psm_yaw ## == TtInw
+    T_offset_w = PyKDL.Frame(Rotation.RPY(np.pi, 0.0, 0),
+                           Vector(0.0, 0.0, 0.0))
+
+    T_psmyaw_w = T_psm_w_b * T_psm_yaw * T_offset_w ## == TtInw
 
 
 
     # ##### attach needle #######
-    T_needle_psmtip = PyKDL.Frame(Rotation.RPY(-np.pi / 2., 0.0, 0),
+    T_needle_psmtip = PyKDL.Frame(Rotation.RPY(-np.pi / 2, 0.0, 0),
                                   Vector(0.009973019361495972, -0.005215135216712952, 0.003237169608473778))
+    # T_needle_psmtip_far = T_needle_psmtip * Frame(Rotation.RPY(0., 0., 0.), Vector(0., 0., -0.010))
     time.sleep(0.5)
     done = False
     T_nINw = needle.get_pose() ################################## replace this line ###############################
     # T_nINw_new = T_nINw * Frame(Rotation.RPY(0,0,0), Vector(0,0,0.05))
-    needle.set_pose(T_nINw)
+    # needle.set_pose(T_nINw)
     # T_nINw = needle.get_pose()
     T_tINw = copy.deepcopy(T_psmyaw_w)
     print('Move to the desired pose')
@@ -157,9 +161,9 @@ if __name__ == "__main__":
         T_cmd.p = T_tINw.p + T_delta.p
         T_cmd.M = T_tINw.M * Rotation.RPY(r_delta[0], r_delta[1], r_delta[2])
         T_tINw = T_cmd
-        T_move = yaw_to_gripper(T_b_p * T_cmd)
+        T_move = yaw_to_gripper(T_psm_b_w * T_cmd * T_offset_w)
         psm2.servo_cp(T_move)
-        psm2.set_jaw_angle(0.5)
+        psm2.set_jaw_angle(0.7)
         time.sleep(0.01)
     print("Done")
     time.sleep(0.5)
