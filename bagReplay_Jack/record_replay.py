@@ -10,7 +10,7 @@ from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 from attach_needle_modify import AttachNeedle
 from surgical_robotics_challenge.utils import coordinate_frames
-dynamic_path = os.path.abspath(__file__ + "/../")
+dynamic_path = os.path.abspath(__file__ + "/../../")
 # data_path = os.path.abspath(__file__+"/../../../../")
 # print(dynamic_path)
 sys.path.append(dynamic_path)
@@ -22,8 +22,12 @@ if __name__ == '__main__':
     # rosbag_name = '/home/zhyjack/dVRK_LfD_simulation/data/test_4.bag'
     # rosbag_name = '/ssd/test_new_1.bag'
     # rosbag_name = '/ssd/test_new_2.bag'
-    rosbag_name='/home/jackzhy/user_study_latest_data/user_jack_03.bag'
-    # output_folder = os.path.join(dynamic_path, 'test_image')
+    # rosbag_name='/home/jackzhy/user_study_latest_data/user_jack_03.bag'
+    data_folder = os.path.join(dynamic_path, "test_replay")  ## add rosbags here!
+    save_folder = os.path.join(dynamic_path, "test_record")  ## folder to save images
+    file_list = glob(os.path.join(data_folder, "*.bag"))
+    # rosbag_name = file_list[0]
+    rosbag_name = file_list[1]
     #
     # if not os.path.exists(output_folder):
     #     print('Create Output Folder')
@@ -200,15 +204,18 @@ if __name__ == '__main__':
     # link2 = simulation_manager.get_obj_handle('psm2' + '/toolyawlink')
 
     # atn = AttachNeedle(needle, link1, link2)
-
-    # for i in range(len(psm1_pos)-1):
-    #     cam.servo_jp(ecm_pos[i])
-    #     psm1.servo_jp(psm1_pos[i])
-    #     # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
-    #     psm1.set_jaw_angle(psm1_jaw[i])
-    #     psm2.servo_jp(psm2_pos[i])
-    #     psm2.set_jaw_angle(psm2_jaw[i])
-    #     time.sleep(0.01)
+    total_num = min(len(psm1_pos), len(psm2_pos), len(psm1_jaw), len(psm2_jaw))
+    for i in range(total_num):
+        cam.servo_jp(ecm_pos[i])
+        psm1.servo_jp(psm1_pos[i])
+        # psm1.set_jaw_angle(psm1_jaw[i] - 0.1)
+        psm1.set_jaw_angle(psm1_jaw[i])
+        psm2.servo_jp(psm2_pos[i])
+        psm2.set_jaw_angle(psm2_jaw[i])
+        time.sleep(0.01)
+        count += 1
+        sys.stdout.write(f"\r Run Progress: {count} / {total_num}")
+        sys.stdout.flush()
     #
     #     # if (i > 2000) and (i < 4000):
     #     #     atn.attach_needle(needle, link2, atn.offset_psm2)
