@@ -1,7 +1,8 @@
 # 6D pose dataset collection scripts
 
-The following repository contains scripts to automatically generate 6d pose datasets from the SurgicalRoboticsAssets.
+The following repository contains scripts to automatically generate 6d pose datasets from the [SurgicalRoboticsAssets][1].
 
+[1]:https://github.com/surgical-robotics-ai/surgical_robotics_challenge
 
 # Getting started
 
