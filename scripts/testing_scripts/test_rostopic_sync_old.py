@@ -53,7 +53,7 @@ class SyncRosInterface:
         assert len(inputs) == len(RosTopics), "error in callback"
 
         for input_msg, topic in zip(inputs, RosTopics):
-            if topic == RosTopics.CAMERA_L:
+            if topic == RosTopics.CAMERA_L_STATE:
                 camera_l_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
             elif topic == RosTopics.CAMERA_FRAME:
                 camera_frame_pose = pm.toMatrix(convert_units(pm.fromMsg(input_msg.pose)))
