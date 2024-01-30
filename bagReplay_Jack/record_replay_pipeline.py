@@ -14,7 +14,7 @@ from threading import Thread
 
 dynamic_path = os.path.abspath(__file__ + "/../../")
 # data_path = os.path.abspath(__file__+"/../../../../")
-print(dynamic_path)
+# print(dynamic_path)
 sys.path.append(dynamic_path)
 
 
@@ -102,13 +102,14 @@ def run_replay(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw):
         sys.stdout.flush()
 
 
-def run_record(idx_i, idx_j, num_ecm):
+def run_record(dynamic_path, save_folder, idx_i, idx_j, num_ecm):
     idx = idx_i * num_ecm + idx_j + 1
     command_record = (
         f"python3 {os.path.join(dynamic_path, 'scripts', 'collect_data.py')} "
-        f"--path {os.path.join(save_folder)} "
+        f"--path {save_folder} "
         f"--scene_id {idx}"
     )
+    # os.path.join(save_folder, str(idx).zfill(6))
     process_record = subprocess.Popen(command_record.split(" "))
     return process_record
 
@@ -220,13 +221,17 @@ if __name__ == "__main__":
     #     cam.servo_jp(ecm_list[idx])
     #     input('Press Enter to continue ...')
 
+    # ecm_pos, psm1_pos, psm2_pos, psm1_jaw, psm2_jaw = read_rosbag(rosbag_name)
+    # print(psm1_pos[0])
+    # print(psm2_pos[0])
+
     for i in range(len(file_list)):
         rosbag_name = file_list[i]
         ecm_pos, psm1_pos, psm2_pos, psm1_jaw, psm2_jaw = read_rosbag(rosbag_name)
         gc.collect()
         for j in range(num_ecm):
             t_replay = Thread(target=run_replay, args=(psm1_pos, psm1_jaw, psm2_pos, psm2_jaw))
-            t_record = ThreadWithReturn(target=run_record, args=(i, j, num_ecm))
+            t_record = ThreadWithReturn(target=run_record, args=(dynamic_path, save_folder, i, j, num_ecm))
             cam.servo_jp(ecm_list[j])
             time.sleep(0.5)
             print(f"\n Move to Camera Position {str(j).zfill(3)} ... \n")
@@ -236,5 +241,15 @@ if __name__ == "__main__":
             process_record = t_record.join()
             process_record.terminate()
             time.sleep(0.5)
+            # open the jaw
+            psm1.set_jaw_angle(0.7)
+            psm2.set_jaw_angle(0.7)
+            time.sleep(0.5)
+            psm1.move_jp([0,0,0,0,0,0])
+            psm2.move_jp([0,0,0,0,0,0])
+            time.sleep(4.0)
             w.reset_bodies()
             time.sleep(1.0)
+            psm1.move_jp(psm1_pos[0])
+            psm2.move_jp(psm2_pos[0])
+            time.sleep(4.0)
