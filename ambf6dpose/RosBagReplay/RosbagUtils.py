@@ -2,6 +2,7 @@ import time
 import os
 import sys
 from glob import glob
+from typing import List
 import rosbag
 import gc
 import argparse
@@ -90,6 +91,10 @@ class RosbagReplayer:
         time.sleep(0.2)
         self.psm2 = PSM(self.simulation_manager, "psm2", add_joint_errors=False)
         time.sleep(0.2)
+
+    def move_cam(self, ecm_jp: List[float]):
+        # ECM servo jp will automatically interpolate
+        self.cam.servo_jp(ecm_jp)
 
     def reset_bodies(self):
         self.w.reset_bodies()

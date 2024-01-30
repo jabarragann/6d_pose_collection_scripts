@@ -5,7 +5,7 @@ from ambf_msgs.msg import CameraState
 from ambf_msgs.msg import RigidBodyState
 from enum import Enum
 import tf_conversions.posemath as pm
-from sensor_msgs.msg import Image 
+from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from cv_bridge import CvBridge, CvBridgeError
 import PyKDL
@@ -13,18 +13,20 @@ from surgical_robotics_challenge.units_conversion import SimToSI
 import numpy as np
 import ros_numpy
 
+
 class RosTopics(Enum):
-    CAMERA_L = ("/ambf/env/cameras/cameraL/State", CameraState)
+    CAMERA_L_STATE = ("/ambf/env/cameras/cameraL/State", CameraState)
     CAMERA_FRAME = ("/ambf/env/CameraFrame/State", RigidBodyState)
     NEEDLE = ("/ambf/env/Needle/State", RigidBodyState)
     CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
     CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraL2/ImageData", Image)
     CAMERA_L_DEPTH = ("/ambf/env/cameras/cameraL/DepthData", PointCloud2)
 
+
 # Association between rostopics and the corresponding attribute in RawSimulationData
 # This dictionary is used to populate a RawSimulationData construction
 topic_to_attr_dict = {
-    RosTopics.CAMERA_L: "camera_l_pose",
+    RosTopics.CAMERA_L_STATE: "camera_l_pose",
     RosTopics.CAMERA_FRAME: "camera_frame_pose",
     RosTopics.NEEDLE: "needle_pose",
     RosTopics.CAMERA_L_IMAGE: "camera_l_img",
@@ -36,12 +38,13 @@ topic_to_attr_dict = {
 # Message processing functions
 ##############################
 
-def get_topics_processing_cb()->Dict[RosTopics, Callable[[Any]]]:
+
+def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
     image_processor = get_image_processor()
     point_cloud_processor = get_point_cloud_processor()
 
     TopicsProcessingCb = {
-        RosTopics.CAMERA_L: processing_pose_data,
+        RosTopics.CAMERA_L_STATE: processing_pose_data,
         RosTopics.CAMERA_FRAME: processing_pose_data,
         RosTopics.NEEDLE: processing_pose_data,
         RosTopics.CAMERA_L_IMAGE: image_processor,
@@ -51,20 +54,24 @@ def get_topics_processing_cb()->Dict[RosTopics, Callable[[Any]]]:
 
     return TopicsProcessingCb
 
+
 def convert_units(frame: PyKDL.Frame):
     scaled_frame = PyKDL.Frame(frame.M, frame.p / SimToSI.linear_factor)
     return scaled_frame
 
-def processing_pose_data(msg: RigidBodyState)->np.ndarray:
+
+def processing_pose_data(msg: RigidBodyState) -> np.ndarray:
     return pm.toMatrix(convert_units(pm.fromMsg(msg.pose)))
+
 
 def get_image_processor():
     bridge = CvBridge()
 
-    def process_img(msg:Image) ->np.ndarray:
+    def process_img(msg: Image) -> np.ndarray:
         return bridge.imgmsg_to_cv2(msg, "bgr8")
-    
+
     return process_img
+
 
 def get_point_cloud_processor():
     w = 640
