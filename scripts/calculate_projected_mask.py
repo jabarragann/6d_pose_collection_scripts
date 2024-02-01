@@ -27,9 +27,8 @@ def load_mesh(mesh_path):
 
 
 def opencv_projection(vertices: np.ndarray, sample: DatasetSample):
-
     intrinsic_mat = sample.intrinsic_matrix
-    extrinsic_mat = sample.extrinsic_matrix
+    extrinsic_mat = sample.needle_pose
     img = sample.raw_img
 
     rvec, tvec = cv2.Rodrigues(extrinsic_mat[:3, :3])[0], extrinsic_mat[:3, 3]
@@ -54,7 +53,7 @@ def bop_rendering(model_path: Path, sample: DatasetSample):
     from bop_toolkit_lib import misc
 
     intrinsic_mat = sample.intrinsic_matrix
-    extrinsic_mat = sample.extrinsic_matrix
+    extrinsic_mat = sample.needle_pose
     fx, fy, cx, cy = (
         intrinsic_mat[0, 0],
         intrinsic_mat[1, 1],
@@ -66,13 +65,17 @@ def bop_rendering(model_path: Path, sample: DatasetSample):
 
     width = 640
     height = 480
-    renderer = RendererVispy(width, height, mode="rgb", shading="flat", bg_color=(0, 0, 0, 0))
+    renderer = RendererVispy(
+        width, height, mode="rgb", shading="flat", bg_color=(0, 0, 0, 0)
+    )
 
     # Load model
     model_color = [0.0, 0.5, 0.0]
     renderer.add_object(1, model_path, surf_color=model_color)
     # Render
-    ren_out = renderer.render_object(1, extrinsic_mat[:3, :3], extrinsic_mat[:3, 3], fx, fy, cx, cy)
+    ren_out = renderer.render_object(
+        1, extrinsic_mat[:3, :3], extrinsic_mat[:3, 3], fx, fy, cx, cy
+    )
     ren_out = ren_out["rgb"]
 
     # Draw bounding box and text info

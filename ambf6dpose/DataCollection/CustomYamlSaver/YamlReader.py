@@ -73,7 +73,7 @@ class DatasetReader(AbstractReader):
             raw_img=cv2.imread(raw_path),
             segmented_img=cv2.imread(seg_path),
             depth_img=self.load_depth(depth_path),
-            extrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
+            needle_pose=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
             intrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.INTRINSIC, step_str),
         )
         return sample
@@ -92,12 +92,16 @@ class DatasetReader(AbstractReader):
             raise ValueError
 
     def get_extrinsic_matrix(self, key: str) -> np.ndarray:
-        rot = self.str_to_numpy(self.__extrinsic_yaml[key][YamlKeys.ROT_EXT.value], (3, 3))
+        rot = self.str_to_numpy(
+            self.__extrinsic_yaml[key][YamlKeys.ROT_EXT.value], (3, 3)
+        )
         rot = self.reorthogonalize(rot)
         t = self.str_to_numpy(self.__extrinsic_yaml[key][YamlKeys.T_EXT.value], (3,))
         return self.create_rigid_transform_matrix(rot, t)
 
-    def create_rigid_transform_matrix(self, rot_str: np.ndarray, t_str: np.ndarray) -> np.ndarray:
+    def create_rigid_transform_matrix(
+        self, rot_str: np.ndarray, t_str: np.ndarray
+    ) -> np.ndarray:
         rigid_transform = np.eye(4)
         rigid_transform[:3, :3] = rot_str
         rigid_transform[:3, 3] = t_str

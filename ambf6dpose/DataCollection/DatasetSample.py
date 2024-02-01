@@ -5,15 +5,22 @@ import numpy as np
 
 @dataclass
 class DatasetSample:
+    """
+    Dataset processed samples. All rigid bodies are specified with respect the
+    camera left frame.
+    """
+
     raw_img: np.ndarray
     segmented_img: np.ndarray
     depth_img: np.ndarray
-    extrinsic_matrix: np.ndarray
+    needle_pose: np.ndarray
+    psm1_toolyawlink_pose: np.ndarray
+    psm2_toolyawlink_pose: np.ndarray
     intrinsic_matrix: np.ndarray
     gt_vis_img: np.ndarray = field(default=None, init=False)
 
-    def project_model_points(self) -> np.ndarray:
-        T_LN_CV2 = self.extrinsic_matrix
+    def project_needle_points(self) -> np.ndarray:
+        T_LN_CV2 = self.needle_pose
 
         # Project center of the needle with OpenCv
         rvecs, _ = cv2.Rodrigues(T_LN_CV2[:3, :3])
@@ -35,12 +42,60 @@ class DatasetSample:
 
         return img_pt
 
-
     def generate_gt_vis(self) -> None:
         img = self.raw_img.copy()
-        img_pt = self.project_model_points()
-        # Display image
+
+        # Project needle points on image
+        img_pt = self.project_needle_points()
         for i in range(img_pt.shape[0]):
-            img = cv2.circle(img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1)
+            img = cv2.circle(
+                img, (int(img_pt[i, 0, 0]), int(img_pt[i, 0, 1])), 3, (255, 0, 0), -1
+            )
+
+        # Draw axis on tool yaw links
+        img = self.draw_axis(
+            img,
+            self.psm1_toolyawlink_pose[:3, :3],
+            self.psm1_toolyawlink_pose[:3, 3],
+            self.intrinsic_matrix,
+        )
+        img = self.draw_axis(
+            img,
+            self.psm2_toolyawlink_pose[:3, :3],
+            self.psm2_toolyawlink_pose[:3, 3],
+            self.intrinsic_matrix,
+        )
 
         self.gt_vis_img = img
+
+    def draw_axis(self, img, R, t, K):
+        # unit is mm
+        rotV, _ = cv2.Rodrigues(R)
+        points = np.float32([[10, 0, 0], [0, 10, 0], [0, 0, 10], [0, 0, 0]]).reshape(
+            -1, 3
+        )
+        axisPoints, _ = cv2.projectPoints(points, rotV, t, K, (0, 0, 0, 0))
+        axisPoints = axisPoints.astype(int)
+
+        img = cv2.line(
+            img,
+            tuple(axisPoints[3].ravel()),
+            tuple(axisPoints[0].ravel()),
+            (255, 0, 0),
+            3,
+        )
+        img = cv2.line(
+            img,
+            tuple(axisPoints[3].ravel()),
+            tuple(axisPoints[1].ravel()),
+            (0, 255, 0),
+            3,
+        )
+        img = cv2.line(
+            img,
+            tuple(axisPoints[3].ravel()),
+            tuple(axisPoints[2].ravel()),
+            (0, 0, 255),
+            3,
+        )
+        return img

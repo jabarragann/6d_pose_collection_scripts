@@ -63,8 +63,12 @@ class YamlSampleSaver(AbstractSaver):
         return f"{step:{DatasetConsts.FMT_STR.value}}"
 
     def save_sample(self, sample: DatasetSample):
-        self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
-        self.yaml_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+        self.img_saver.save_sample(
+            str_step=self.fmt_step(self.__internal_step), data=sample
+        )
+        self.yaml_saver.save_sample(
+            str_step=self.fmt_step(self.__internal_step), data=sample
+        )
         self.__internal_step += 1
 
         if self.__internal_step > self.__max_step:
@@ -90,7 +94,10 @@ class NumpyStrFormatter:
     def convert_to_yaml(self, data: np.ndarray) -> str:
         flat_data = data.ravel()
         str_repr = np.array2string(
-            flat_data, separator=",", precision=self.precision, max_line_width=self.max_line_width
+            flat_data,
+            separator=",",
+            precision=self.precision,
+            max_line_width=self.max_line_width,
         )
         return str_repr[1:-1]
 
@@ -118,7 +125,9 @@ class YamlSaver(ABC):
         intrinsics_str = self.numpy_fmt.convert_to_yaml(data.intrinsic_matrix)
         data_dict = {YamlKeys.INTRINSIC.value: intrinsics_str}
 
-        with open(self.root / YamlFiles.INTRINSIC.value, "wt", encoding="utf-8") as file_handle:
+        with open(
+            self.root / YamlFiles.INTRINSIC.value, "wt", encoding="utf-8"
+        ) as file_handle:
             yaml.dump(
                 data_dict,
                 file_handle,
@@ -133,9 +142,14 @@ class YamlSaver(ABC):
             self.save_intrinsics(data)
             self.__first_sample = False
 
-        rot_str = self.numpy_fmt.convert_to_yaml(data.extrinsic_matrix[:3, :3])
-        t_str = self.numpy_fmt.convert_to_yaml(data.extrinsic_matrix[:3, 3])
-        data_dict = {f"{str_step}": {YamlKeys.ROT_EXT.value: rot_str, YamlKeys.T_EXT.value: t_str}}
+        rot_str = self.numpy_fmt.convert_to_yaml(data.needle_pose[:3, :3])
+        t_str = self.numpy_fmt.convert_to_yaml(data.needle_pose[:3, 3])
+        data_dict = {
+            f"{str_step}": {
+                YamlKeys.ROT_EXT.value: rot_str,
+                YamlKeys.T_EXT.value: t_str,
+            }
+        }
 
         yaml.dump(
             data_dict,

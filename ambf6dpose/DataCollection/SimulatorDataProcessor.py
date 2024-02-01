@@ -37,18 +37,73 @@ class SimulatorDataProcessor:
         return self.intrinsic_params
 
     def get_needle_extrinsics(self, raw_data: RawSimulationData) -> np.ndarray:
-        T_WN = raw_data.needle_pose  # Needle to world
-        T_FL = raw_data.camera_l_pose  # CamL to CamFrame
-        T_WF = raw_data.camera_frame_pose  # CamFrame to world
+        needle_pose_in_caml = self.transform_from_world_to_cam_l(
+            raw_data.needle_pose, raw_data.camera_l_pose, raw_data.camera_frame_pose
+        )
+        return self.convert_pose_to_mm(needle_pose_in_caml)
 
-        T_WL = T_WF.dot(T_FL)
-        T_LN = inv(T_WL).dot(T_WN)  # Needle to CamL
+        # T_WN = raw_data.needle_pose  # Needle to world
+        # T_FL = raw_data.camera_l_pose  # CamL to CamFrame
+        # T_WF = raw_data.camera_frame_pose  # CamFrame to world
+
+        # T_WL = T_WF.dot(T_FL)
+        # T_LN = inv(T_WL).dot(T_WN)  # Needle to CamL
+
+        # # Convert AMBF camera axis to Opencv Camera axis
+        # F = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
+        # T_LN_CV2 = F.dot(T_LN)
+
+        # return T_LN_CV2
+
+    def get_psm1_toolyawlink_extrinsics(
+        self, raw_data: RawSimulationData
+    ) -> np.ndarray:
+        psm1_toolyawlink_pose_in_caml = self.transform_from_world_to_cam_l(
+            raw_data.psm1_toolyawlink_pose,
+            raw_data.camera_l_pose,
+            raw_data.camera_frame_pose,
+        )
+        return self.convert_pose_to_mm(psm1_toolyawlink_pose_in_caml)
+
+    def get_psm2_toolyawlink_extrinsics(
+        self, raw_data: RawSimulationData
+    ) -> np.ndarray:
+        psm2_toolyawlink_pose_in_caml = self.transform_from_world_to_cam_l(
+            raw_data.psm2_toolyawlink_pose,
+            raw_data.camera_l_pose,
+            raw_data.camera_frame_pose,
+        )
+        return self.convert_pose_to_mm(psm2_toolyawlink_pose_in_caml)
+
+    def transform_from_world_to_cam_l(
+        self,
+        obj2world_pose: np.ndarray,
+        caml2camframe_pose: np.ndarray,
+        camframe2world_pose: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Transform objects defined in the world frame to the left camera frame.
+        Camera left is attached to a camera frame in the surgical robotics
+        assets. Therefore, the location of the left camera and the camera frame
+        are needed.
+        """
+        T_W_OBJ = obj2world_pose
+        T_FL = caml2camframe_pose
+        T_WF = camframe2world_pose
+
+        T_WL = T_WF @ T_FL  # CamL to world
+        T_LW = inv(T_WL)  # World to CamL
+        T_L_OBJ = T_LW @ T_W_OBJ  # Needle to CamL
 
         # Convert AMBF camera axis to Opencv Camera axis
         F = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])
-        T_LN_CV2 = F.dot(T_LN)
+        T_L_OBJ_CV2 = F.dot(T_L_OBJ)
 
-        return T_LN_CV2
+        return T_L_OBJ_CV2
+
+    def convert_pose_to_mm(self, pose: np.ndarray) -> np.ndarray:
+        pose[:3, 3] = pose[:3, 3] * 1000
+        return pose
 
     def generate_dataset_sample(self) -> DatasetSample:
         """Transformations are saved in mm to comply with the BOP standard."""
@@ -57,14 +112,31 @@ class SimulatorDataProcessor:
         seg_img = raw_data.camera_l_seg_img
         depth_img = raw_data.camera_l_depth
 
-        # Get extrinsics - Needle to CamL
-        T_lcam_needle_CV2 = self.get_needle_extrinsics(raw_data)  # Needle(N) to CamL (L) (T_LN)
-        T_lcam_needle_CV2[:3, 3] = T_lcam_needle_CV2[:3, 3] * 1000  # convert from m to mm
+        # # Get extrinsics - Needle to CamL
+        # T_lcam_needle_CV2 = self.get_needle_extrinsics(
+        #     raw_data
+        # )  # Needle(N) to CamL (L) (T_LN)
+        # T_lcam_needle_CV2[:3, 3] = (
+        #     T_lcam_needle_CV2[:3, 3] * 1000
+        # )  # convert from m to mm
+
+        # Process object poses
+        needle_in_caml_frame = self.get_needle_extrinsics(raw_data)
+        psm1_toolyawlink_in_caml_frame = self.get_psm1_toolyawlink_extrinsics(raw_data)
+        psm2_toolyawlink_in_caml_frame = self.get_psm2_toolyawlink_extrinsics(raw_data)
 
         # Get intrinsics
         K = self.get_intrinsics()
 
-        return DatasetSample(img, seg_img, depth_img, T_lcam_needle_CV2, K)
+        return DatasetSample(
+            img,
+            seg_img,
+            depth_img,
+            needle_in_caml_frame,
+            psm1_toolyawlink_in_caml_frame,
+            psm2_toolyawlink_in_caml_frame,
+            K,
+        )
 
 
 if __name__ == "__main__":

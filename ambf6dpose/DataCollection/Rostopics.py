@@ -14,6 +14,7 @@ import numpy as np
 import ros_numpy
 
 
+# All topics in RosTopics will stored with the sync recoder
 class RosTopics(Enum):
     CAMERA_L_STATE = ("/ambf/env/cameras/cameraL/State", CameraState)
     CAMERA_FRAME = ("/ambf/env/CameraFrame/State", RigidBodyState)
@@ -21,9 +22,11 @@ class RosTopics(Enum):
     CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
     CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraL2/ImageData", Image)
     CAMERA_L_DEPTH = ("/ambf/env/cameras/cameraL/DepthData", PointCloud2)
+    PSM1_TOOL_YAW_LINK = ("/ambf/env/psm1/toolyawlink/State", RigidBodyState)
+    PSM2_TOOL_YAW_LINK = ("/ambf/env/psm2/toolyawlink/State", RigidBodyState)
 
 
-# Association between rostopics and the corresponding attribute in RawSimulationData
+# Association between rostopics and the corresponding attribute in RosClients.RawSimulationData
 # This dictionary is used to populate a RawSimulationData construction
 topic_to_attr_dict = {
     RosTopics.CAMERA_L_STATE: "camera_l_pose",
@@ -32,6 +35,8 @@ topic_to_attr_dict = {
     RosTopics.CAMERA_L_IMAGE: "camera_l_img",
     RosTopics.CAMERA_L_SEG_IMAGE: "camera_l_seg_img",
     RosTopics.CAMERA_L_DEPTH: "camera_l_depth",
+    RosTopics.PSM1_TOOL_YAW_LINK: "psm1_toolyawlink_pose",
+    RosTopics.PSM2_TOOL_YAW_LINK: "psm2_toolyawlink_pose",
 }
 
 ##############################
@@ -50,6 +55,8 @@ def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
         RosTopics.CAMERA_L_IMAGE: image_processor,
         RosTopics.CAMERA_L_SEG_IMAGE: image_processor,
         RosTopics.CAMERA_L_DEPTH: point_cloud_processor,
+        RosTopics.PSM1_TOOL_YAW_LINK: processing_pose_data,
+        RosTopics.PSM2_TOOL_YAW_LINK: processing_pose_data,
     }
 
     return TopicsProcessingCb
@@ -77,7 +84,9 @@ def get_point_cloud_processor():
     w = 640
     h = 480
     scale = (1 / SimToSI.linear_factor) * 1000  # convert to from simulation units to mm
-    extrinsic = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]])  # T_cv_ambf
+    extrinsic = np.array(
+        [[0, 1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]]
+    )  # T_cv_ambf
 
     def process_point_cloud(msg: PointCloud2) -> np.ndarray:
         xyz_array = ros_numpy.point_cloud2.pointcloud2_to_array(msg)
@@ -91,7 +100,9 @@ def get_point_cloud_processor():
         # reverse height direction due to AMBF reshaping
         scaled_depth = np.ascontiguousarray(scaled_depth.reshape([h, w, 3])[::-1])
         # convert to cv convention
-        scaled_depth = np.einsum("ab,hwb->hwa", extrinsic[:3, :3], scaled_depth)[..., -1]
+        scaled_depth = np.einsum("ab,hwb->hwa", extrinsic[:3, :3], scaled_depth)[
+            ..., -1
+        ]
 
         # scaled_depth = np.round(scaled_depth).astype(np.uint16)
         # print(scaled_depth.shape)

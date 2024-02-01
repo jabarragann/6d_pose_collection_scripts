@@ -14,12 +14,20 @@ from ambf6dpose.DataCollection.Rostopics import (
 
 @dataclass
 class RawSimulationData:
+    """
+    Store data raw data from Rostopics. Pose data coming from ROS topics is
+    always with respect to the world frame.
+
+    """
+
     camera_l_pose: np.ndarray
     camera_frame_pose: np.ndarray
     needle_pose: np.ndarray
     camera_l_img: np.ndarray
     camera_l_seg_img: np.ndarray
     camera_l_depth: np.ndarray
+    psm1_toolyawlink_pose: np.ndarray
+    psm2_toolyawlink_pose: np.ndarray
 
     def __post_init__(self):
         if self.has_none_members():
@@ -73,7 +81,7 @@ class AbstractSimulationClient(ABC):
 
         data = self.raw_data
         self.raw_data = None
-        return data 
+        return data
 
     def has_data(self) -> bool:
         return self.raw_data is not None
@@ -84,7 +92,9 @@ class AbstractSimulationClient(ABC):
             time.sleep(0.1)
             last_time = time.time()
             if last_time - init_time > timeout:
-                raise TimeoutError(f"Timeout waiting for data. No data received for {timeout}s")
+                raise TimeoutError(
+                    f"Timeout waiting for data. No data received for {timeout}s"
+                )
 
 
 @dataclass
@@ -95,7 +105,9 @@ class SyncRosInterface(AbstractSimulationClient):
         self.callback_dict = get_topics_processing_cb()
 
         for topic in RosTopics:
-            self.subscribers.append(message_filters.Subscriber(topic.value[0], topic.value[1]))
+            self.subscribers.append(
+                message_filters.Subscriber(topic.value[0], topic.value[1])
+            )
 
         # WARNING: TimeSynchronizer did not work. Use ApproximateTimeSynchronizer instead.
         # self.time_sync = message_filters.TimeSynchronizer(self.subscribers, 10)

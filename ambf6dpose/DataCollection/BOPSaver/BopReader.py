@@ -47,7 +47,9 @@ class BopReader(AbstractReader):
         if len(self.dataset_split_type) == 0:
             self.dataset_split_complete = self.dataset_split
         else:
-            self.dataset_split_complete = self.dataset_split + "_" + self.dataset_split_type
+            self.dataset_split_complete = (
+                self.dataset_split + "_" + self.dataset_split_type
+            )
 
         self.root = self.root / self.dataset_split_complete
         assert self.root.exists(), f"Path {self.root} does not exist"
@@ -74,7 +76,9 @@ class BopReader(AbstractReader):
         """Make sure that data was loaded correctly"""
         total_length = 0
         for scene_id in self.scene_id_list:
-            total_length += len(list(self.__dict_paths[scene_id][ImgDirs.RAW].glob("*.png")))
+            total_length += len(
+                list(self.__dict_paths[scene_id][ImgDirs.RAW].glob("*.png"))
+            )
 
         assert total_length == len(self.__idx2imgs), "Error while loading data"
         return total_length
@@ -104,13 +108,17 @@ class BopReader(AbstractReader):
 
         for scene_id in self.scene_id_list:
             for img_dir in ImgDirs:
-                self.__dict_paths[scene_id][img_dir] = self.root / scene_id / folder_names[img_dir]
+                self.__dict_paths[scene_id][img_dir] = (
+                    self.root / scene_id / folder_names[img_dir]
+                )
 
         # Create table of idx to scene_id and img_name
         for scene_id in self.scene_id_list:
             ids = [
                 (scene_id, p.name)
-                for p in natsorted(self.__dict_paths[scene_id][ImgDirs.RAW].glob("*.png"))
+                for p in natsorted(
+                    self.__dict_paths[scene_id][ImgDirs.RAW].glob("*.png")
+                )
             ]
             self.__idx2imgs += ids
 
@@ -120,9 +128,13 @@ class BopReader(AbstractReader):
         for scene_id in self.scene_id_list:
             assert (self.root / scene_id).exists(), "Scene id {scene_id} does not exist"
             with open(self.root / scene_id / GroundTruthFiles.SCENE_GT.value, "r") as f:
-                self.__scene_gt[scene_id] = self._load_json(f, scene_id, GroundTruthFiles.SCENE_GT)
+                self.__scene_gt[scene_id] = self._load_json(
+                    f, scene_id, GroundTruthFiles.SCENE_GT
+                )
 
-            with open(self.root / scene_id / GroundTruthFiles.SCENE_CAMERA.value, "r") as f:
+            with open(
+                self.root / scene_id / GroundTruthFiles.SCENE_CAMERA.value, "r"
+            ) as f:
                 self.__scene_camera[scene_id] = self._load_json(
                     f, scene_id, GroundTruthFiles.SCENE_CAMERA
                 )
@@ -162,7 +174,9 @@ class BopReader(AbstractReader):
             raw_img=cv2.imread(raw_path),
             segmented_img=cv2.imread(seg_path),
             depth_img=self.load_depth(depth_path),
-            extrinsic_matrix=self.get_matrix_from_gt(GroundTruthFiles.SCENE_GT, scene_id, img_name),
+            needle_pose=self.get_matrix_from_gt(
+                GroundTruthFiles.SCENE_GT, scene_id, img_name
+            ),
             intrinsic_matrix=self.get_matrix_from_gt(
                 GroundTruthFiles.SCENE_CAMERA, scene_id, img_name
             ),
@@ -199,7 +213,9 @@ class BopReader(AbstractReader):
 
         return self.create_rigid_transform_matrix(rot, t)
 
-    def create_rigid_transform_matrix(self, rot_str: np.ndarray, t_str: np.ndarray) -> np.ndarray:
+    def create_rigid_transform_matrix(
+        self, rot_str: np.ndarray, t_str: np.ndarray
+    ) -> np.ndarray:
         rigid_transform = np.eye(4)
         rigid_transform[:3, :3] = rot_str
         rigid_transform[:3, 3] = t_str

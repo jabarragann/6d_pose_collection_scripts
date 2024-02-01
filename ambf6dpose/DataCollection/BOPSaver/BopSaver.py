@@ -78,7 +78,9 @@ class BopSampleSaver(AbstractSaver):
         return f"{step:{self.fmt_str}}"
 
     def save_sample(self, sample: DatasetSample):
-        self.img_saver.save_sample(str_step=self.fmt_step(self.__internal_step), data=sample)
+        self.img_saver.save_sample(
+            str_step=self.fmt_step(self.__internal_step), data=sample
+        )
         self.json_saver.save_sample(self.__internal_step, data=sample)
         self.__internal_step += 1
 
@@ -128,9 +130,7 @@ class JsonSaver(ABC):
         self.scene_gt_path = self.root / self.scene_gt_name
 
         if self.scene_gt_path.exists() and self.safe_save:
-            msg = (
-                f"GT file: {self.scene_gt_path} already exists. Do you want to overwrite it? (y/n) "
-            )
+            msg = f"GT file: {self.scene_gt_path} already exists. Do you want to overwrite it? (y/n) "
             if input(msg) != "y":
                 print("exiting ...")
                 exit()
@@ -155,7 +155,7 @@ class JsonSaver(ABC):
     def save_sample(self, im_id: int, data: DatasetSample):
         obj_id = 1
         self.add_to_scene_camera(im_id, data.intrinsic_matrix)
-        self.add_to_scene_gt(im_id, obj_id, data.extrinsic_matrix)
+        self.add_to_scene_gt(im_id, obj_id, data.needle_pose)
 
         if self.__internal_step % self.save_every == 0:
             self.save_scene_camera()
@@ -224,7 +224,10 @@ class JsonFileManager:
     store_data_as: str = "dict"
 
     def __post_init__(self):
-        assert self.store_data_as in ["dict", "list"], "store_data_as must be either dict or list"
+        assert self.store_data_as in [
+            "dict",
+            "list",
+        ], "store_data_as must be either dict or list"
         if self.store_data_as == "dict":
             self.opening_char = "{\n"
             self.closing_char = "\n}"
@@ -261,7 +264,9 @@ class JsonFileManager:
             self._save_list(content)
 
     def _save_dict(self, content: dict[str, Any]):
-        assert isinstance(content, dict), "content must be dict when store_data_as is dict"
+        assert isinstance(
+            content, dict
+        ), "content must be dict when store_data_as is dict"
 
         content_sorted = sorted(content.items(), key=lambda x: x[0])
         for elem_id, (k, v) in enumerate(content_sorted):
@@ -270,7 +275,9 @@ class JsonFileManager:
             self.file.write("\n")
 
     def _save_list(self, content: List[Any]):
-        assert isinstance(content, list), "content must be a list when store_data_as is list"
+        assert isinstance(
+            content, list
+        ), "content must be a list when store_data_as is list"
         for elem_id, elem in enumerate(content):
             self.file.write("  {}".format(json.dumps(elem, sort_keys=True)))
             self.file.write(",")
@@ -321,7 +328,9 @@ def _scene_camera_as_json(camera):
     return camera
 
 
-def _replace_enums_scene_gt(content: dict[int, list[dict[Enum, Any]]]) -> dict[str, Any]:
+def _replace_enums_scene_gt(
+    content: dict[int, list[dict[Enum, Any]]]
+) -> dict[str, Any]:
     new_dict = defaultdict(list)
     for img_id, annotation_list in content.items():
         for anno in annotation_list:

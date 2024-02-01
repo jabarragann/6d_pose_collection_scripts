@@ -21,7 +21,7 @@ def generate_dataset(path: str):
         sample.generate_gt_vis()
         cv2.imwrite(str(blended_path / f"{fmt_idx}.png"), sample.gt_vis_img)
         print(f"Sample {fmt_idx}")
-        print(sample.extrinsic_matrix)
+        print(sample.needle_pose)
 
 
 if __name__ == "__main__":

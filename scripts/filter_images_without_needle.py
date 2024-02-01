@@ -2,7 +2,11 @@ from pathlib import Path
 from typing import List
 import click
 from ambf6dpose.DataCollection.BOPSaver.BopReader import BopReader
-from ambf6dpose.DataCollection.BOPSaver.BopSaver import BopSampleSaver, JsonSaver, get_folder_names
+from ambf6dpose.DataCollection.BOPSaver.BopSaver import (
+    BopSampleSaver,
+    JsonSaver,
+    get_folder_names,
+)
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
 from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs
 import cv2
@@ -49,18 +53,22 @@ def filter_imgs(root: Path, reader: BopReader):
     saver_manager = SaversManager()
 
     with saver_manager.create_savers(root, reader.scene_id_list) as savers_dict:
-        for idx, sample in tqdm(enumerate(reader), total=len(reader), desc="Filtering images"):
+        for idx, sample in tqdm(
+            enumerate(reader), total=len(reader), desc="Filtering images"
+        ):
             scene_id, img_name = reader.get_metadata(idx)
             img_id = int(img_name[:-4])
 
-            img_pt = sample.project_model_points().squeeze()
+            img_pt = sample.project_needle_points().squeeze()
             test_x = (img_pt[:, 0] > 0) & (img_pt[:, 0] < 640)
             test_y = (img_pt[:, 1] > 0) & (img_pt[:, 1] < 480)
             valid_points = test_x & test_y
             valid_points = valid_points.sum()
 
             if valid_points < 5:
-                print(f"{idx} scene:{scene_id}-{img_name} has {valid_points} valid points")
+                print(
+                    f"{idx} scene:{scene_id}-{img_name} has {valid_points} valid points"
+                )
 
                 # remove images
                 move_path = removed_images / scene_id
@@ -114,13 +122,22 @@ def filter_imgs(root: Path, reader: BopReader):
 
 @click.command()
 @click.option(
-    "--root_path", required=True, type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path)
+    "--root_path",
+    required=True,
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path),
 )
-@click.option("-s", "--dataset_split", help="train or test", type=click.Choice(["train", "test"]))
 @click.option(
-    "-t", "--dataset_split_type", default=None, help="ds split type. see bop toolkit data format."
+    "-s", "--dataset_split", help="train or test", type=click.Choice(["train", "test"])
 )
-def filter_img_without_needle(root_path: Path, dataset_split: str, dataset_split_type: str):
+@click.option(
+    "-t",
+    "--dataset_split_type",
+    default=None,
+    help="ds split type. see bop toolkit data format.",
+)
+def filter_img_without_needle(
+    root_path: Path, dataset_split: str, dataset_split_type: str
+):
     reader = BopReader(
         root=Path(root_path),
         scene_id_list=[],
