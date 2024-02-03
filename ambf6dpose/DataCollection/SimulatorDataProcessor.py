@@ -11,6 +11,10 @@ np.set_printoptions(precision=3, suppress=True)
 
 @dataclass
 class SimulatorDataProcessor:
+    """
+    Express poses in terms of the camera left frame. Also, change units to mm to comply with BOP datasets.
+    """
+
     simulation_client: AbstractSimulationClient
 
     def __post_init__(self):
@@ -42,25 +46,13 @@ class SimulatorDataProcessor:
         )
         return self.convert_pose_to_mm(needle_pose_in_caml)
 
-    def get_psm1_toolyawlink_extrinsics(
-        self, raw_data: RawSimulationData
+    def get_tool_pose(
+        self, raw_data: RawSimulationData, raw_tool_pose: np.ndarray
     ) -> np.ndarray:
-        psm1_toolyawlink_pose_in_caml = self.transform_from_world_to_cam_l(
-            raw_data.psm1_toolyawlink_pose,
-            raw_data.camera_l_pose,
-            raw_data.camera_frame_pose,
+        tool_pose_in_caml = self.transform_from_world_to_cam_l(
+            raw_tool_pose, raw_data.camera_l_pose, raw_data.camera_frame_pose
         )
-        return self.convert_pose_to_mm(psm1_toolyawlink_pose_in_caml)
-
-    def get_psm2_toolyawlink_extrinsics(
-        self, raw_data: RawSimulationData
-    ) -> np.ndarray:
-        psm2_toolyawlink_pose_in_caml = self.transform_from_world_to_cam_l(
-            raw_data.psm2_toolyawlink_pose,
-            raw_data.camera_l_pose,
-            raw_data.camera_frame_pose,
-        )
-        return self.convert_pose_to_mm(psm2_toolyawlink_pose_in_caml)
+        return self.convert_pose_to_mm(tool_pose_in_caml)
 
     def transform_from_world_to_cam_l(
         self,
@@ -101,8 +93,18 @@ class SimulatorDataProcessor:
 
         # Process object poses
         needle_in_caml_frame = self.get_needle_extrinsics(raw_data)
-        psm1_toolyawlink_in_caml_frame = self.get_psm1_toolyawlink_extrinsics(raw_data)
-        psm2_toolyawlink_in_caml_frame = self.get_psm2_toolyawlink_extrinsics(raw_data)
+        psm1_toolpitchlink_in_caml_frame = self.get_tool_pose(
+            raw_data, raw_data.psm1_toolpitchlink_pose
+        )
+        psm2_toolpitchlink_in_caml_frame = self.get_tool_pose(
+            raw_data, raw_data.psm2_toolpitchlink_pose
+        )
+        psm1_toolyawlink_in_caml_frame = self.get_tool_pose(
+            raw_data, raw_data.psm1_toolyawlink_pose
+        )
+        psm2_toolyawlink_in_caml_frame = self.get_tool_pose(
+            raw_data, raw_data.psm2_toolyawlink_pose
+        )
 
         # Get intrinsics
         K = self.get_intrinsics()
@@ -112,6 +114,8 @@ class SimulatorDataProcessor:
             seg_img,
             depth_img,
             needle_in_caml_frame,
+            psm1_toolpitchlink_in_caml_frame,
+            psm2_toolpitchlink_in_caml_frame,
             psm1_toolyawlink_in_caml_frame,
             psm2_toolyawlink_in_caml_frame,
             K,

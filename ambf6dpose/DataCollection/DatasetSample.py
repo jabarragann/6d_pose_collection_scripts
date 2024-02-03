@@ -14,6 +14,8 @@ class DatasetSample:
     segmented_img: np.ndarray
     depth_img: np.ndarray
     needle_pose: np.ndarray
+    psm1_toolpitchlink_pose: np.ndarray
+    psm2_toolpitchlink_pose: np.ndarray
     psm1_toolyawlink_pose: np.ndarray
     psm2_toolyawlink_pose: np.ndarray
     intrinsic_matrix: np.ndarray
@@ -55,25 +57,31 @@ class DatasetSample:
         # Draw axis on tool yaw links
         img = self.draw_axis(
             img,
-            self.psm1_toolyawlink_pose[:3, :3],
-            self.psm1_toolyawlink_pose[:3, 3],
-            self.intrinsic_matrix,
+            self.psm1_toolpitchlink_pose,
         )
         img = self.draw_axis(
             img,
-            self.psm2_toolyawlink_pose[:3, :3],
-            self.psm2_toolyawlink_pose[:3, 3],
-            self.intrinsic_matrix,
+            self.psm2_toolpitchlink_pose,
+        )
+        img = self.draw_axis(
+            img,
+            self.psm1_toolyawlink_pose,
+        )
+        img = self.draw_axis(
+            img,
+            self.psm2_toolyawlink_pose,
         )
 
         self.gt_vis_img = img
 
-    def draw_axis(self, img, R, t, K):
+    def draw_axis(self, img, pose):
+        s = 3
+        thickness = 2
+        R, t = pose[:3, :3], pose[:3, 3]
+        K = self.intrinsic_matrix
         # unit is mm
         rotV, _ = cv2.Rodrigues(R)
-        points = np.float32([[10, 0, 0], [0, 10, 0], [0, 0, 10], [0, 0, 0]]).reshape(
-            -1, 3
-        )
+        points = np.float32([[s, 0, 0], [0, s, 0], [0, 0, s], [0, 0, 0]]).reshape(-1, 3)
         axisPoints, _ = cv2.projectPoints(points, rotV, t, K, (0, 0, 0, 0))
         axisPoints = axisPoints.astype(int)
 
@@ -82,20 +90,21 @@ class DatasetSample:
             tuple(axisPoints[3].ravel()),
             tuple(axisPoints[0].ravel()),
             (255, 0, 0),
-            3,
+            thickness,
         )
         img = cv2.line(
             img,
             tuple(axisPoints[3].ravel()),
             tuple(axisPoints[1].ravel()),
             (0, 255, 0),
-            3,
+            thickness,
         )
+
         img = cv2.line(
             img,
             tuple(axisPoints[3].ravel()),
             tuple(axisPoints[2].ravel()),
             (0, 0, 255),
-            3,
+            thickness,
         )
         return img

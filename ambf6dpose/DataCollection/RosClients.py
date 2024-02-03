@@ -16,7 +16,7 @@ from ambf6dpose.DataCollection.Rostopics import (
 class RawSimulationData:
     """
     Store data raw data from Rostopics. Pose data coming from ROS topics is
-    always with respect to the world frame.
+    always with respect to the object's parent coordinate frame.
 
     """
 
@@ -26,6 +26,8 @@ class RawSimulationData:
     camera_l_img: np.ndarray
     camera_l_seg_img: np.ndarray
     camera_l_depth: np.ndarray
+    psm1_toolpitchlink_pose: np.ndarray
+    psm2_toolpitchlink_pose: np.ndarray
     psm1_toolyawlink_pose: np.ndarray
     psm2_toolyawlink_pose: np.ndarray
 

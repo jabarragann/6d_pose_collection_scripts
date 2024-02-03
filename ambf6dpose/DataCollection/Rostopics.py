@@ -14,6 +14,10 @@ import numpy as np
 import ros_numpy
 
 
+##############################
+# Poses configuration 
+##############################
+
 # All topics in RosTopics will stored with the sync recoder
 class RosTopics(Enum):
     CAMERA_L_STATE = ("/ambf/env/cameras/cameraL/State", CameraState)
@@ -22,6 +26,8 @@ class RosTopics(Enum):
     CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
     CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraL2/ImageData", Image)
     CAMERA_L_DEPTH = ("/ambf/env/cameras/cameraL/DepthData", PointCloud2)
+    PSM1_TOOL_PITCH_LINK = ("/ambf/env/psm1/toolpitchlink/State", RigidBodyState)
+    PSM2_TOOL_PITCH_LINK = ("/ambf/env/psm2/toolpitchlink/State", RigidBodyState)
     PSM1_TOOL_YAW_LINK = ("/ambf/env/psm1/toolyawlink/State", RigidBodyState)
     PSM2_TOOL_YAW_LINK = ("/ambf/env/psm2/toolyawlink/State", RigidBodyState)
 
@@ -35,13 +41,11 @@ topic_to_attr_dict = {
     RosTopics.CAMERA_L_IMAGE: "camera_l_img",
     RosTopics.CAMERA_L_SEG_IMAGE: "camera_l_seg_img",
     RosTopics.CAMERA_L_DEPTH: "camera_l_depth",
+    RosTopics.PSM1_TOOL_PITCH_LINK: "psm1_toolpitchlink_pose",
+    RosTopics.PSM2_TOOL_PITCH_LINK: "psm2_toolpitchlink_pose",
     RosTopics.PSM1_TOOL_YAW_LINK: "psm1_toolyawlink_pose",
     RosTopics.PSM2_TOOL_YAW_LINK: "psm2_toolyawlink_pose",
 }
-
-##############################
-# Message processing functions
-##############################
 
 
 def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
@@ -55,12 +59,17 @@ def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
         RosTopics.CAMERA_L_IMAGE: image_processor,
         RosTopics.CAMERA_L_SEG_IMAGE: image_processor,
         RosTopics.CAMERA_L_DEPTH: point_cloud_processor,
+        RosTopics.PSM1_TOOL_PITCH_LINK: processing_pose_data,
+        RosTopics.PSM2_TOOL_PITCH_LINK: processing_pose_data,
         RosTopics.PSM1_TOOL_YAW_LINK: processing_pose_data,
         RosTopics.PSM2_TOOL_YAW_LINK: processing_pose_data,
     }
 
     return TopicsProcessingCb
 
+##############################
+# Utility functions 
+##############################
 
 def convert_units(frame: PyKDL.Frame):
     scaled_frame = PyKDL.Frame(frame.M, frame.p / SimToSI.linear_factor)
