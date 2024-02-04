@@ -12,9 +12,16 @@ from enum import Enum
 import yaml
 import png
 from contextlib import ExitStack
-from ambf6dpose.DataCollection.DatasetSample import DatasetSample
+from ambf6dpose.DataCollection.DatasetSample import DatasetSample, RigidObjectsIds
 from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractSaver
 from ambf6dpose.DataCollection.ReaderSaverUtils import ImgDirs, ImageSaver
+
+
+def get_obj_id_from_name(
+    sample: DatasetSample, obj_name: str
+) -> Tuple[np.ndarray, int]:
+    id = RigidObjectsIds[obj_name]
+    pass
 
 
 def get_folder_names():
@@ -155,7 +162,10 @@ class JsonSaver(ABC):
     def save_sample(self, im_id: int, data: DatasetSample):
         obj_id = 1
         self.add_to_scene_camera(im_id, data.intrinsic_matrix)
-        self.add_to_scene_gt(im_id, obj_id, data.needle_pose)
+
+        for rigid_obj in RigidObjectsIds:
+            obj_pose = getattr(data, rigid_obj.name)
+            self.add_to_scene_gt(im_id, rigid_obj.value, obj_pose)
 
         if self.__internal_step % self.save_every == 0:
             self.save_scene_camera()
@@ -173,13 +183,16 @@ class JsonSaver(ABC):
         rot_m2c = extrinsic_matrix[:3, :3]
         t_m2c = extrinsic_matrix[:3, 3]
 
-        self.scene_gt[im_id] = [
-            {
-                SceneGtKeys.CAM_R_M2C: rot_m2c,
-                SceneGtKeys.CAM_T_M2C: t_m2c,
-                SceneGtKeys.OBJ_ID: int(obj_id),
-            }
-        ]
+        obj_dict = {
+            SceneGtKeys.CAM_R_M2C: rot_m2c,
+            SceneGtKeys.CAM_T_M2C: t_m2c,
+            SceneGtKeys.OBJ_ID: int(obj_id),
+        }
+
+        if im_id in self.scene_gt.keys():
+            self.scene_gt[im_id].append(obj_dict)
+        else:
+            self.scene_gt[im_id] = [obj_dict]
 
     def save_scene_gt(self):
         self.scene_gt = _scene_gt_as_json(self.scene_gt)

@@ -1,7 +1,14 @@
 from dataclasses import dataclass, field
 import cv2
 import numpy as np
+from enum import Enum, auto 
 
+class RigidObjectsIds(Enum):
+    needle_pose = 0 
+    psm1_toolpitchlink_pose = 1
+    psm1_toolyawlink_pose = 2
+    psm2_toolpitchlink_pose = 3
+    psm2_toolyawlink_pose = 4
 
 @dataclass
 class DatasetSample:

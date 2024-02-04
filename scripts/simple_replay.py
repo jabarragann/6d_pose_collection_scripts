@@ -9,7 +9,7 @@ from click_params import FloatListParamType
 import rospy
 import cv2
 
-default_path = "/home/juan1995/research_juan/accelnet_grant/6d_pose_dataset_collection/test_replay/src_env2_v1.1.3_rec03_jack.bag"
+def_path = "/home/juan1995/research/accelnet_grant/6d_pose_collection_scripts/test_replay/src_env2_v1.1.3_rec03_jack.bag"
 
 
 @dataclass
