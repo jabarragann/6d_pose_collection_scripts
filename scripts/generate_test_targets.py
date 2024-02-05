@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
-from ambf6dpose.DataCollection.BOPSaver.BopReader import BopReader
+from ambf6dpose.DataCollection.BOPSaver.BopReader import BopDatasetReader
 from ambf6dpose.DataCollection.BOPSaver.BopSaver import JsonFileManager
 
 
 def main():
     root_path2 = "/home/juan1995/research_juan/accelnet_grant/BenchmarkFor6dObjectPose/BOP_datasets/ambf_suturing"
-    reader = BopReader(
+    reader = BopDatasetReader(
         root=Path(root_path2),
         scene_id_list=[],
         dataset_split="test",

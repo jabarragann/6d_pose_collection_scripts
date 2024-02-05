@@ -1,7 +1,7 @@
 from pathlib import Path
 import click
 import cv2
-from ambf6dpose import DatasetReader, YamlSampleSaver
+from ambf6dpose import YamlDatasetReader, YamlSampleSaver
 
 
 @click.command()
@@ -11,7 +11,7 @@ def generate_dataset(path: str):
     to visualy inspect the correctness of the intrinsic and extrinsic matrices
     """
     path = Path(path).resolve()
-    dataset = DatasetReader(path)
+    dataset = YamlDatasetReader(path)
 
     blended_path = path / "blended_img"
     blended_path.mkdir(exist_ok=True)

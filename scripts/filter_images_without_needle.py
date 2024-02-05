@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 import click
-from ambf6dpose.DataCollection.BOPSaver.BopReader import BopReader
+from ambf6dpose.DataCollection.BOPSaver.BopReader import BopDatasetReader
 from ambf6dpose.DataCollection.BOPSaver.BopSaver import (
     BopSampleSaver,
     JsonSaver,
@@ -47,7 +47,7 @@ class SaversManager:
         self.exit_stack.close()
 
 
-def filter_imgs(root: Path, reader: BopReader):
+def filter_imgs(root: Path, reader: BopDatasetReader):
     img_folders = get_folder_names()
     removed_images = root.parent / (root.name + "_removed_images")
     saver_manager = SaversManager()
@@ -138,7 +138,7 @@ def filter_imgs(root: Path, reader: BopReader):
 def filter_img_without_needle(
     root_path: Path, dataset_split: str, dataset_split_type: str
 ):
-    reader = BopReader(
+    reader = BopDatasetReader(
         root=Path(root_path),
         scene_id_list=[],
         dataset_split=dataset_split,

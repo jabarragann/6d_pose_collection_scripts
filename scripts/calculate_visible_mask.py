@@ -3,7 +3,7 @@ from pathlib import Path
 import open3d as o3d
 import numpy as np
 import cv2
-from ambf6dpose import DatasetReader
+from ambf6dpose import YamlDatasetReader
 from surgical_robotics_challenge.units_conversion import SimToSI
 from ambf6dpose.DataCollection.CustomYamlSaver.DatasetBuilder import DatasetSample
 from bop_toolkit_lib.renderer_vispy import RendererVispy
@@ -88,7 +88,7 @@ def bop_rendering(model_path, sample:DatasetSample):
 if __name__ == "__main__":
     mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled_mm.ply")
     ds_path = Path("./test_ds")
-    dataset = DatasetReader(ds_path)
+    dataset = YamlDatasetReader(ds_path)
 
     sample: DatasetSample = dataset[55]
     bop_rendering(mesh_path, sample)

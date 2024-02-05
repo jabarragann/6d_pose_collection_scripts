@@ -3,7 +3,7 @@ from pathlib import Path
 import open3d as o3d
 import numpy as np
 import cv2
-from ambf6dpose import DatasetReader
+from ambf6dpose import YamlDatasetReader
 from surgical_robotics_challenge.units_conversion import SimToSI
 
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled_mm.ply")
     # ds_path = Path("./scripts/6d_pose_sample_ds")
     ds_path = Path("./test_ds_good")
-    dataset = DatasetReader(ds_path)
+    dataset = YamlDatasetReader(ds_path)
 
     vertices, mesh = load_mesh(mesh_path)
 
