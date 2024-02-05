@@ -12,7 +12,7 @@ from ambf6dpose.DataCollection.BOPSaver.BopSaver import (
     GroundTruthFiles,
     DatasetConsts,
 )
-from ambf6dpose.DataCollection.DatasetSample import DatasetSample
+from ambf6dpose.DataCollection.DatasetSample import DatasetSample, RigidObjectsIds
 from ambf6dpose.DataCollection.ReaderSaverUtils import AbstractReader, ImgDirs
 from dataclasses import dataclass, field
 import cv2
@@ -22,9 +22,11 @@ from natsort import natsorted
 
 
 @dataclass
-class BopReader(AbstractReader):
+class BopDatasetReader(AbstractReader):
     """
-    See bop_toolkit for more info
+    See bop_toolkit for more info on the dataset structure
+
+    https://github.com/thodan/bop_toolkit/blob/master/docs/bop_datasets_format.md
 
     Parameters
     ----------
@@ -174,12 +176,22 @@ class BopReader(AbstractReader):
             raw_img=cv2.imread(raw_path),
             segmented_img=cv2.imread(seg_path),
             depth_img=self.load_depth(depth_path),
-            needle_pose=self.get_matrix_from_gt(
-                GroundTruthFiles.SCENE_GT, scene_id, img_name
+            needle_pose=self.get_extrinsic_matrix(
+                RigidObjectsIds.needle_pose.value, scene_id, img_name
             ),
-            intrinsic_matrix=self.get_matrix_from_gt(
-                GroundTruthFiles.SCENE_CAMERA, scene_id, img_name
+            psm1_toolpitchlink_pose=self.get_extrinsic_matrix(
+                RigidObjectsIds.psm1_toolpitchlink_pose.value, scene_id, img_name
             ),
+            psm2_toolpitchlink_pose=self.get_extrinsic_matrix(
+                RigidObjectsIds.psm2_toolpitchlink_pose.value, scene_id, img_name
+            ),
+            psm1_toolyawlink_pose=self.get_extrinsic_matrix(
+                RigidObjectsIds.psm1_toolyawlink_pose.value, scene_id, img_name
+            ),
+            psm2_toolyawlink_pose=self.get_extrinsic_matrix(
+                RigidObjectsIds.psm2_toolyawlink_pose.value, scene_id, img_name
+            ),
+            intrinsic_matrix=self.get_camera_intrinsics(scene_id, img_name),
         )
         return sample
 
@@ -187,28 +199,27 @@ class BopReader(AbstractReader):
         d: np.ndarray = imageio.imread(path)
         return d.astype(np.float32)
 
-    def get_matrix_from_gt(
-        self, file_type: GroundTruthFiles, scene_id: int, img_name: str
-    ) -> np.ndarray:
-        if file_type == GroundTruthFiles.SCENE_GT:
-            return self.get_extrinsic_matrix(scene_id, img_name)
-        elif file_type == GroundTruthFiles.SCENE_CAMERA:
-            k = str(int(img_name[:-4]))
-            intrinsic = self.__scene_camera[scene_id][k][SceneCameraKeys.CAM_K.value]
-            intrinsic = np.array(intrinsic).reshape(3, 3)
-            return intrinsic
-        else:
-            raise ValueError
+    def get_camera_intrinsics(self, scene_id: int, img_name: str) -> np.ndarray:
 
-    def get_extrinsic_matrix(self, scene_id: int, img_name) -> np.ndarray:
         k = str(int(img_name[:-4]))
-        rot = self.__scene_gt[scene_id][k][0][SceneGtKeys.CAM_R_M2C.value]
+        intrinsic = self.__scene_camera[scene_id][k][SceneCameraKeys.CAM_K.value]
+        intrinsic = np.array(intrinsic).reshape(3, 3)
+        return intrinsic
+
+    def get_extrinsic_matrix(self, obj_id: int, scene_id: int, img_name) -> np.ndarray:
+        k = str(int(img_name[:-4]))
+
+        for idx, obj in enumerate(self.__scene_gt[scene_id][k]):
+            if obj[SceneGtKeys.OBJ_ID.value] == obj_id:
+                break
+
+        rot = self.__scene_gt[scene_id][k][idx][SceneGtKeys.CAM_R_M2C.value]
         rot = np.array(rot).reshape(3, 3)
 
-        t = self.__scene_gt[scene_id][k][0][SceneGtKeys.CAM_T_M2C.value]
+        t = self.__scene_gt[scene_id][k][idx][SceneGtKeys.CAM_T_M2C.value]
         t = np.array(t)
 
-        obj_id = self.__scene_gt[scene_id][k][0][SceneGtKeys.OBJ_ID.value]
+        obj_id = self.__scene_gt[scene_id][k][idx][SceneGtKeys.OBJ_ID.value]
         rot = self.reorthogonalize(rot)
 
         return self.create_rigid_transform_matrix(rot, t)
@@ -236,14 +247,18 @@ class BopReader(AbstractReader):
 
 
 if __name__ == "__main__":
-    root_path2 = "/home/juan1995/research_juan/accelnet_grant/BenchmarkFor6dObjectPose/BOP_datasets/ambf_suturing"
-    reader = BopReader(
+    file_path = Path(__file__).resolve().parent
+    root_path2 = file_path / "../../../SampleData/needle_gripper_dataset"
+    root_path2 = root_path2.resolve()
+
+    reader = BopDatasetReader(
         root=Path(root_path2),
         scene_id_list=[],
         dataset_split="test",
         dataset_split_type="",
     )
 
+    ## Calling another dataset
     # root_path = "/home/juan1995/research_juan/accelnet_grant/6d_pose_dataset_collection/test_ds_bop"
     # reader = BopReader(
     #     root=Path("."), scene_id_list=[0, 1], dataset_split="test", dataset_split_type="ds_bop"
@@ -251,9 +266,12 @@ if __name__ == "__main__":
 
     print(f"Dataset size: {len(reader)}")
 
-    idx = 111
-    sample: DatasetSample = reader[idx]
-    scene_id, img_name = reader.get_metadata(idx)
-    sample.generate_gt_vis()
-    cv2.imshow(f"{scene_id}-{img_name}", sample.gt_vis_img)
-    cv2.waitKey(0)
+    for idx in range(0, len(reader)):
+        sample: DatasetSample = reader[idx]
+        scene_id, img_name = reader.get_metadata(idx)
+        sample.generate_gt_vis()
+        cv2.imshow("image", sample.gt_vis_img)
+        print(f"{scene_id}-{img_name}")
+        cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
