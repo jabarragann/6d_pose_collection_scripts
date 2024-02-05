@@ -8,3 +8,5 @@ Data generation pipeline depends on a `SimulatorDataProcessor` that transforms t
 ## Adding additional data sources
 
 If needed poses of new objects or cameras, this should be added in two different locations: in configuration block of `Rostopics.py` and as member attributes of the `RawSimulationData` class. To test the script after adding the new data sources use the main function in `SimulatorDataProcessor.py`. Additionally, `scripts/testing_scripts/` have scripts to test if the rostopics are sending data with a syncronized and a unsyncronized client. 
+
+### Adding meshes of new objects
