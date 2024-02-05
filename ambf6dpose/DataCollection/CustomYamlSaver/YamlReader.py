@@ -74,6 +74,10 @@ class YamlDatasetReader(AbstractReader):
             segmented_img=cv2.imread(seg_path),
             depth_img=self.load_depth(depth_path),
             needle_pose=self.get_matrix_from_yaml(YamlFiles.EXTRINSIC, step_str),
+            psm1_toolpitchlink_pose=None,
+            psm2_toolpitchlink_pose=None,
+            psm1_toolyawlink_pose=None,
+            psm2_toolyawlink_pose=None,
             intrinsic_matrix=self.get_matrix_from_yaml(YamlFiles.INTRINSIC, step_str),
         )
         return sample

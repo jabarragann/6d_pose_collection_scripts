@@ -116,7 +116,7 @@ def bop_rendering(model_path: Path, sample: DatasetSample):
 if __name__ == "__main__":
     mesh_path = Path("./scripts/6d_pose_sample_ds/Needle_triangle_scaled_mm.ply")
     # ds_path = Path("./scripts/6d_pose_sample_ds")
-    ds_path = Path("./test_ds_good")
+    ds_path = Path("./test_ds_yaml")
     dataset = YamlDatasetReader(ds_path)
 
     vertices, mesh = load_mesh(mesh_path)
