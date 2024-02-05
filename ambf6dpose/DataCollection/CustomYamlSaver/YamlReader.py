@@ -18,7 +18,7 @@ from ambf6dpose.DataCollection.ReaderSaverUtils import is_rotation, trnorm
 
 
 @dataclass
-class DatasetReader(AbstractReader):
+class YamlDatasetReader(AbstractReader):
     def __post_init__(self):
         self.__dict_paths: Dict[ImgDirs, Path] = {}
         self.__init_dict_paths()
@@ -64,7 +64,7 @@ class DatasetReader(AbstractReader):
             return self.construct_sample(key)
 
     def construct_sample(self, key: int) -> DatasetSample:
-        step_str = DatasetReader.format_step(key)
+        step_str = YamlDatasetReader.format_step(key)
         raw_path = str(self.__dict_paths[ImgDirs.RAW] / f"{step_str}.png")
         seg_path = str(self.__dict_paths[ImgDirs.SEGMENTED] / f"{step_str}.png")
         depth_path = str(self.__dict_paths[ImgDirs.DEPTH] / f"{step_str}.png")
@@ -122,7 +122,7 @@ class DatasetReader(AbstractReader):
 
 
 if __name__ == "__main__":
-    reader = DatasetReader(Path("./test_ds"))
+    reader = YamlDatasetReader(Path("./test_ds"))
     sample = reader[0]
     sample.generate_gt_vis()
     cv2.imshow("raw", sample.gt_vis_img)

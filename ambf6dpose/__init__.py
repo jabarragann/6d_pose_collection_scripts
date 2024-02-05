@@ -11,4 +11,4 @@ from ambf6dpose.DataCollection.RosClients import (
 from ambf6dpose.DataCollection.SimulatorDataProcessor import SimulatorDataProcessor
 from ambf6dpose.DataCollection.CustomYamlSaver.YamlSaver import YamlSampleSaver
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample
-from ambf6dpose.DataCollection.CustomYamlSaver.YamlReader import DatasetReader
+from ambf6dpose.DataCollection.CustomYamlSaver.YamlReader import YamlDatasetReader
