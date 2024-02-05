@@ -248,7 +248,7 @@ class BopDatasetReader(AbstractReader):
 
 if __name__ == "__main__":
     file_path = Path(__file__).resolve().parent
-    root_path2 = file_path / "../../../SampleData/needle_gripper_dataset"
+    root_path2 = file_path / "../../../SampleData/BOP/needle_gripper_dataset"
     root_path2 = root_path2.resolve()
 
     reader = BopDatasetReader(
