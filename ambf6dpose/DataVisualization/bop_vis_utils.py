@@ -23,6 +23,9 @@ class BOPRendererWrapper:
         self.renderer.add_object(obj_id.value, model_path, surf_color=surf_color)
         self.models_dict[obj_id] = model_path
 
+    def get_model_path(self, obj_id: RigidObjectsIds):
+        return self.models_dict[obj_id]
+
     def render_obj(
         self, obj_id: RigidObjectsIds, obj_pose: np.ndarray, sample: DatasetSample
     ):
