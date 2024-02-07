@@ -96,7 +96,7 @@ def annotate_img(my_renderer, sample: DatasetSample):
 
 def main():
     file_path = Path(__file__).resolve().parent
-    dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset"
+    dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset_V0.0.2"
     dataset_path = dataset_path.resolve()
     assert dataset_path.exists(), f"Path {dataset_path} does not exist"
 
