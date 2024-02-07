@@ -1,4 +1,4 @@
-# Synthetic data generation of 6D pose datasets of surgical instruments 
+# Synthetic data generation of surgical instruments' 6D pose datasets​ 
 
 Package to generate 6D pose datasets of surgical instruments. The package is based on the [Surgical Robotic challenge][1] simulation environment and the [BOP toolkit][2].
 
