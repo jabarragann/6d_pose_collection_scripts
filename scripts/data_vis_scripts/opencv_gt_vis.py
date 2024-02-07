@@ -13,7 +13,7 @@ from ambf6dpose.DataVisualization.opencv_vis_utils import load_mesh, opencv_gt_v
 def main():
     current_dir = Path(__file__).resolve().parent
     mesh_path = current_dir / "../../SampleData/Models/Needle.ply"
-    ds_path = current_dir / "../../SampleData/YAML/needle_dataset"
+    ds_path = current_dir / "../../SampleData/YAML/needle_dataset_V0.0.1"
     dataset = YamlDatasetReader(ds_path)
 
     vertices, mesh = load_mesh(mesh_path)
