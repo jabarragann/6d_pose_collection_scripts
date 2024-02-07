@@ -50,12 +50,13 @@ def setup_rendering() -> BOPRendererWrapper:
 
 
 def annotate_img(my_renderer, sample: DatasetSample):
-
+    text_size = 20
+    text_offset = (2, -25)
     ## ANNOTATE NEEDLE
     ren_out1 = my_renderer.render_obj(
         RigidObjectsIds.needle_pose, sample.needle_pose, sample
     )
-    annotator1 = ImageAnnotations(sample.raw_img)
+    annotator1 = ImageAnnotations(sample.raw_img, text_size, text_offset)
     annotator1.add_annotations("needle", ren_out1)
     annotated_img1 = annotator1.combine_annotations()
 
@@ -70,9 +71,9 @@ def annotate_img(my_renderer, sample: DatasetSample):
         sample.psm2_toolpitchlink_pose,
         sample,
     )
-    annotator2 = ImageAnnotations(sample.raw_img)
+    annotator2 = ImageAnnotations(sample.raw_img, text_size, text_offset)
     annotator2.add_annotations("psm1_toolpitch", ren_out2_psm1)
-    annotator2.add_annotations("psm1_toolpitch", ren_out2_psm2)
+    annotator2.add_annotations("psm2_toolpitch", ren_out2_psm2)
     annotated_img2 = annotator2.combine_annotations()
 
     # ANNOTATE TOOLYAWLINK
@@ -86,7 +87,7 @@ def annotate_img(my_renderer, sample: DatasetSample):
         sample.psm2_toolyawlink_pose,
         sample,
     )
-    annotator3 = ImageAnnotations(sample.raw_img)
+    annotator3 = ImageAnnotations(sample.raw_img, text_size, text_offset)
     annotator3.add_annotations("psm1_toolyaw", ren_out3_psm1)
     annotator3.add_annotations("psm2_toolyaw", ren_out3_psm2)
     annotated_img3 = annotator3.combine_annotations()

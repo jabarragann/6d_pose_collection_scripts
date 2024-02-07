@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import numpy as np
 from ambf6dpose.DataCollection.DatasetSample import DatasetSample, RigidObjectsIds
 
@@ -48,6 +48,8 @@ class BOPRendererWrapper:
 @dataclass
 class ImageAnnotations:
     img: np.ndarray
+    text_size: int = 11
+    text_loc_offset: Tuple[int, int] = (2, 0)
 
     def __post_init__(self):
         self.annotated_img = self.img.copy()
@@ -70,13 +72,15 @@ class ImageAnnotations:
         )
 
     def _add_text(self, annotation_img, bbox, obj_name: str) -> np.ndarray:
-        text_size = 11
         text_color = (1.0, 1.0, 1.0)
-        text_loc = (bbox[0] + 2, bbox[1])
+        text_loc = (
+            bbox[0] + self.text_loc_offset[0],
+            bbox[1] + self.text_loc_offset[1],
+        )
         txt_info = [dict(name=obj_name, val=0, fmt="")]
 
         annotation_img = write_text_on_image(
-            annotation_img, txt_info, text_loc, color=text_color, size=text_size
+            annotation_img, txt_info, text_loc, color=text_color, size=self.text_size
         )
 
         return annotation_img
