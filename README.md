@@ -1,8 +1,13 @@
-# 6D pose dataset collection scripts
+# Synthetic data generation of 6D pose datasets of surgical instruments 
 
-The following repository contains scripts to automatically generate 6d pose datasets from the [SurgicalRoboticsAssets][1].
+Package to generate 6D pose datasets of surgical instruments. The package is based on the [Surgical Robotic challenge][1] simulation environment and the [BOP toolkit][2].
 
-[1]:https://github.com/surgical-robotics-ai/surgical_robotics_challenge
+<p align="center">
+<img src="./docs/imgs/main_fig.png" width="700">
+</p>
+
+[1]: https://github.com/surgical-robotics-ai/surgical_robotics_challenge
+[2]: https://github.com/thodan/bop_toolkit 
 
 # Getting started
 
@@ -56,3 +61,10 @@ To load data into a neural network I would start from this script. `DatasetReade
 ## Known issues:
 
 * Ros topic for images are hardcoded on the `SimulationInterface.py`. If you are using a different topic, the resulting images will be empty.
+
+# Citation
+If you find this work useful, please cite it as:
+
+```bibtex
+
+```
