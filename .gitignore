@@ -3,7 +3,6 @@
 __pycache__
 test_d*
 6d_pose_sample_ds
-*yaml
 *.egg-info
 # MacOS
 .idea
