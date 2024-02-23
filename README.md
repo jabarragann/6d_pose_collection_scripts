@@ -31,7 +31,6 @@ pip install -r requirements/requirements.txt
 Scripts to collect and read data are found in `scripts/` folder.
 
 **Replay instrumention motion**
-Sample trajectories are available upon request.
 
 ```bash
 python scripts/simple_replay.py single-replay --help
@@ -51,6 +50,8 @@ Options:
   -o, --output_p DIRECTORY   Only required if record flag (-r) is set.
   --help                     Show this message and exit.
 ```
+
+Sample trajectories are available upon request.
 
 **Collection of image and pose data**
 ```bash
