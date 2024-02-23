@@ -21,10 +21,11 @@ The following code base will require Ubuntu 20.04, ROS noetic, [AMBF][ambf-githu
 pip install -e .
 ```
 
-and then install python dependencies with:
+and then install additional dependencies with:
 
 ```bash
 pip install -r requirements/requirements.txt
+sudo apt install ros-noetic-ros-numpy
 ```
 
 ## Scripts
