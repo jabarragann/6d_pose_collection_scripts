@@ -78,7 +78,7 @@ def setup_sigint_handler(bag_player: rosbagutils.RosbagReplayer):
     e.g., '1.0 1.0 1.0 1.0'. If not provide current camera pose will be used.",
     type=FloatListParamType(" ", ignore_empty=True),
 )
-@click.option("-r", "record_im", is_flag=True, default=False)
+@click.option("-r", "record_im", is_flag=True, default=False, help="Record images")
 @click.option(
     "-o",
     "--output_p",
