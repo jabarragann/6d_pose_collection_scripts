@@ -9,6 +9,11 @@ Package to generate 6D pose datasets of surgical instruments. The package is bas
 [1]: https://github.com/surgical-robotics-ai/surgical_robotics_challenge
 [2]: https://github.com/thodan/bop_toolkit 
 
+Main functionalities:
+(1) Replay of pre-recorded trajectories 
+(2) Recording of datasets in the BOP format.
+(3) Expressing the pose of AMBF objects with respect to the camera frame for computer vision applications.
+
 # Getting started
 
 ## Installation
