@@ -11,7 +11,7 @@ from ambf6dpose.DataVisualization.bop_vis_utils import (
 
 def main():
     file_path = Path(__file__).resolve().parent
-    dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset"
+    dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset_V0.0.2"
     dataset_path = dataset_path.resolve()
     needle_model_path = file_path / "../../SampleData/Models/Needle.ply"
     needle_model_path = needle_model_path.resolve()
