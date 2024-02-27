@@ -79,7 +79,7 @@ Options:
 <details>
 <summary> Ros sync client did not received any data/timeout exceptions </summary>
 <br>
-Ros topic for images are hardcoded on the [Rostopics.py](./ambf6dpose/DataCollection/Rostopics.py). If you are using a different topic names, the ROS sync client will not generate any data to be saved. In particular, check if the toolpitchlink state for PSM1 and PSM2 are being published. These are not published by default on the simulation environment
+Ros topic for images are hardcoded on the <a href="./ambf6dpose/DataCollection/Rostopics.py">Rostopics.py</a>. If you are using a different topic names, the ROS sync client will not generate any data to be saved. In particular, check if the toolpitchlink state for PSM1 and PSM2 are being published. These are not published by default on the simulation environment
 
 ```
 /ambf/env/psm1/toolpitchlink/Command
