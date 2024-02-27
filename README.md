@@ -7,11 +7,11 @@ Package to generate 6D pose datasets of surgical instruments. The package is bas
 </p>
 
 
-Main functionalities:
+**Main functionalities:**
 
-1. Replaying of pre-recorded trajectories 
-2. Recording of datasets in the BOP format.
-3. Expressing the pose of AMBF objects with respect to the camera frame for computer vision applications.
+1. Replaying of pre-recorded trajectories (See [simple_replay.py](./scripts/simple_replay.py)) 
+2. Recording of  6D pose datasets in the BOP format (See [collect_data.py](./scripts/collect_data.py)).
+3. Reader class for datasets generated in BOP format (See [BopDatasetReader](./ambf6dpose/DataCollection/BOPSaver/BopReader.py)).
 
 # Getting started
 
@@ -28,8 +28,10 @@ pip install -r requirements/requirements.txt
 sudo apt install ros-noetic-ros-numpy
 ```
 
-## Scripts
-Scripts to collect and read data are found in `scripts/` folder.
+## Data generation  
+
+To generated data, you will first need to open the surgical robotics challenge scene and then replay motions with the `simple_replay.py` script. While the motions are being replayed, you can collect data with the `collect_data.py` script. For more information about to each script refer see below.
+
 
 **Replay instrumention motion**
 
@@ -74,7 +76,42 @@ Options:
 
 ## Troubleshooting:
 
-* Ros topic for images are hardcoded on the [Rostopics.py](./ambf6dpose/DataCollection/Rostopics.py). If you are using a different topic names, the ROS sync client will not generate any data to be saved.
+<details>
+<summary> Ros sync client did not received any data/timeout exceptions </summary>
+<br>
+Ros topic for images are hardcoded on the <a href="./ambf6dpose/DataCollection/Rostopics.py">Rostopics.py</a>. If you are using different topic names, the ROS sync client will not generate any data to be saved. In particular, check if the toolpitchlink state for PSM1 and PSM2 are being published. These are not published by default on the simulation environment
+
+```
+/ambf/env/psm1/toolpitchlink/Command
+/ambf/env/psm2/toolpitchlink/Command
+```
+
+To start publishing change the toolpitchlink BODY `passive flag` to `false` in the [PSM ADF files](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/blob/eb82bdea8a10550b8dfad6fc9f8dd8002c6ad925/ADF/psm1.yaml#L415). You will have to do this for both PSMs.
+
+</details>
+
+<details>
+<summary> Incompatibility issues with numpy greater than 1.20 </summary>
+
+<br>
+If you find incompatibility issues with your numpy version, you will probably need to modify some source files of <code>ros_numpy</code> to remove the numpy deprecated attributes. Replace <code>np.float</code> for <code>float</code> at line 224 of <code>point_cloud2.py</code>.  
+
+<br>
+
+``` bash
+File "/opt/ros/noetic/lib/python3/dist-packages/ros_numpy/point_cloud2.py", li ne 224 , in def get_xyz_points(cloud_array, remove_nans=True, dtype=np.float):
+File "/home/jin/.local/lib/python3.8/site-packages/numpy/init.py", line 30 5 , in _getattr
+
+raise AttributeError(former_attrs[attr])
+AttributeError: module 'numpy' has no attribute 'float'.
+'np.float" was a deprecated alias for the builtin 'float'. To avoid this error 
+In existing code, use 'float' by itself. Doing this will not modify any behavior and is safe. If you specifically wanted the numpy scalar type, use 'np.float64" here.
+The aliases was originally deprecated in NumPy 1.20; for more details and guidan ce see the original release note at:
+https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
+```
+
+</details>
+
 
 # Citation
 If you find this work useful, please cite it as:
