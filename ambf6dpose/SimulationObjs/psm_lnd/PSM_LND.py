@@ -43,11 +43,9 @@ ljm = LNDJointMapping()
 
 
 class LND:
-    def __init__(self, sim_name):
-        self.client = Client(sim_name)
-        self.client.connect()
-        time.sleep(0.5)
-        self.base = self.client.get_obj_handle("tool_main_insert")
+    def __init__(self, namespace: str, client: Client):
+        self.client = client
+        self.base = self.client.get_obj_handle(namespace + "tool_main_insert")
         time.sleep(0.5)
 
         ### base transformation info
@@ -131,7 +129,11 @@ class LND:
 
 
 if __name__ == "__main__":
-    lnd = LND("test")
+
+    client = Client("LNDSimulation")
+    client.connect()
+    lnd = LND("/new_psm1/", client)
+
     lnd.servo_jp([0, 1, -1])
     lnd.set_jaw_angle(0.0)
     time.sleep(1.0)

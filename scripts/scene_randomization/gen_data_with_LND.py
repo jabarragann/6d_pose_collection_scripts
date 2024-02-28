@@ -3,6 +3,7 @@ import time
 from typing import List
 from ambf6dpose.SimulationObjs.psm_lnd.PSM_LND import LND
 from dataclasses import dataclass, field
+from ambf_client import Client
 from PyKDL import Frame
 
 
@@ -13,9 +14,25 @@ class RpyTrajectoryGenerator:
     """
 
     initial_rpy: List[float]
-    trajectory: List[float] = field(init=False)
+    trajectory: List[float] = field(init=False, default_factory=list)
     step_size: float = 0.017  # 0.017 rad approx 1 deg
     total_steps: int = 5
+
+    def __iter__(self):
+        self.__internal_idx = 0
+        return self
+
+    def __next__(self):
+        if self.__internal_idx < len(self.trajectory):
+            sample = self.trajectory[self.__internal_idx]
+            self.__internal_idx += 1
+            return sample
+        else:
+            raise StopIteration
+
+
+@dataclass
+class PSM1Traj(RpyTrajectoryGenerator):
 
     def __post_init__(self):
         self.generate_rpy_trajectory()
@@ -34,54 +51,97 @@ class RpyTrajectoryGenerator:
                         ]
                     )
 
-    def __iter__(self):
-        self.__internal_idx = 0
-        return self
 
-    def __next__(self):
-        if self.__internal_idx < len(self.trajectory):
-            sample = self.trajectory[self.__internal_idx]
-            self.__internal_idx += 1
-            return sample
-        else:
-            raise StopIteration
+@dataclass
+class PSM2Traj(RpyTrajectoryGenerator):
+
+    def __post_init__(self):
+        self.generate_rpy_trajectory()
+
+    def generate_rpy_trajectory(self) -> None:
+        for i in range(0, self.total_steps):
+            for j in range(0, self.total_steps):
+                for k in range(0, self.total_steps):
+                    self.trajectory.append(
+                        [
+                            self.initial_rpy[0] + j * self.step_size,
+                            self.initial_rpy[1] + i * self.step_size,
+                            self.initial_rpy[2] + k * self.step_size,
+                        ]
+                    )
 
 
-def gen_random_joint_angles() -> List[float]:
-    return [
-        random.uniform(-1.3, 1.3),
-        random.uniform(-0.7, 0.7),
-        random.uniform(-0.7, 0.7),
-    ]
+@dataclass
+class InstrumentPoseRandomizer:
+    lnd_handle: LND
+    initial_rpy: List[float] = field(init=False)
 
+    def __post_init__(self):
 
-def generate_random_jaw_angle() -> float:
-    return random.uniform(0.0, 0.7)
+        self.initial_rpy_psm2 = self.lnd_handle.base.get_pose()[3:]
+        self.lnd_handle.set_jaw_angle(0.5)
+        self.lnd_handle.servo_jp([0, 0, 0])
+
+    def update(self, new_rpy: List[float]) -> None:
+        self.lnd_handle.base.set_rpy(new_rpy[0], new_rpy[1], new_rpy[2])
+        time.sleep(0.2)
+        self.lnd_handle.servo_jp(self.gen_random_joint_angles())
+        self.lnd_handle.set_jaw_angle(self.generate_random_jaw_angle())
+
+    def reset(self):
+        self.lnd_handle.set_jaw_angle(0.5)
+        self.lnd_handle.servo_jp([0, 0, 0])
+
+    @staticmethod
+    def gen_random_joint_angles() -> List[float]:
+        return [
+            random.uniform(-1.3, 1.3),
+            random.uniform(-0.7, 0.7),
+            random.uniform(-0.7, 0.7),
+        ]
+
+    @staticmethod
+    def generate_random_jaw_angle() -> float:
+        return random.uniform(0.0, 0.7)
 
 
 def replay_trajectory():
-    lnd = LND("test")
-    initial_rpy = lnd.base.get_pose()[3:]
 
-    trajectory = RpyTrajectoryGenerator(initial_rpy, total_steps=3)
+    client = Client("LND_Simulation")
+    client.connect()
+    time.sleep(0.5)
 
-    lnd.set_jaw_angle(0.5)
-    lnd.servo_jp([0, 0, 0])
+    world_handle = client.get_world_handle()
+    world_handle.reset_bodies()
+    time.sleep(0.5)
 
-    for t in trajectory:
-        jaw_angle = generate_random_jaw_angle()
-        print(f"{t}")
-        print(f"{jaw_angle = }")
-        lnd.base.set_rpy(t[0], t[1], t[2])
-        time.sleep(0.3)
-        lnd.servo_jp(gen_random_joint_angles())
-        time.sleep(0.3)
-        lnd.set_jaw_angle(jaw_angle)
+    psm1_lnd = LND("/new_psm1/", client)
+    psm2_lnd = LND("/new_psm2/", client)
 
-        time.sleep(1.2)
+    initial_rpy_psm1 = psm1_lnd.base.get_pose()[3:]
+    initial_rpy_psm2 = psm2_lnd.base.get_pose()[3:]
 
-def generate_data_with_LND():
+    psm1_trajectory = PSM1Traj(initial_rpy_psm1, total_steps=3, step_size=0.017)
+    psm2_trajectory = PSM2Traj(initial_rpy_psm2, total_steps=3, step_size=0.017)
+
+    psm1_randomizer = InstrumentPoseRandomizer(psm1_lnd)
+    psm2_randomizer = InstrumentPoseRandomizer(psm2_lnd)
+
+    for t1, t2 in zip(psm1_trajectory, psm2_trajectory):
+        psm1_randomizer.update(t1)
+        psm2_randomizer.update(t2)
+
+        time.sleep(1.4)
+
+    psm1_randomizer.reset()
+    psm2_randomizer.reset()
+
+    time.sleep(0.5)
+
+
+def replay_and_record():
     pass
+
 
 if __name__ == "__main__":
     replay_trajectory()
