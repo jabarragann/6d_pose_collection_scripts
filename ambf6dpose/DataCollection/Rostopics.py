@@ -75,7 +75,7 @@ def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
 
 
 def convert_units(frame: PyKDL.Frame):
-    scaled_frame = PyKDL.Frame(frame.M, frame.p / SimToSI.linear_factor)
+    scaled_frame = PyKDL.Frame(frame.M, frame.p / 1.0)
     return scaled_frame
 
 
