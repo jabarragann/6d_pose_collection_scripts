@@ -8,6 +8,7 @@ test_d*
 .idea
 .DS_Store
 temp
+*.ply
 
 /test_record
 /test_replay
