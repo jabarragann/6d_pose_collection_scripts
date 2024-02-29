@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+import click
 import numpy as np
 import cv2
 from ambf6dpose.DataCollection.BOPSaver.BopReader import BopDatasetReader
@@ -19,9 +20,11 @@ def setup_rendering() -> BOPRendererWrapper:
     file_path = Path(__file__).resolve().parent
     needle_model_path = file_path / "../../SampleData/Models/Needle.ply"
     needle_model_path = needle_model_path.resolve()
-    toolpitchlink_model_path = file_path / "../../SampleData/Models/ToolPitchLink.ply"
+    toolpitchlink_model_path = (
+        file_path / "../../SampleData/Models/NewPSMToolPitchLink.ply"
+    )
     toolpitchlink_model_path = toolpitchlink_model_path.resolve()
-    toolyawlink_model_path = file_path / "../../SampleData/Models/ToolYawLink.ply"
+    toolyawlink_model_path = file_path / "../../SampleData/Models/NewPSMToolYawLink.ply"
     toolyawlink_model_path = toolyawlink_model_path.resolve()
 
     assert_paths_exist(
@@ -49,7 +52,7 @@ def setup_rendering() -> BOPRendererWrapper:
     return my_renderer
 
 
-def annotate_img(my_renderer, sample: DatasetSample):
+def annotate_img(my_renderer: BOPRendererWrapper, sample: DatasetSample):
     text_size = 20
     text_offset = (2, -25)
     ## ANNOTATE NEEDLE
@@ -95,10 +98,18 @@ def annotate_img(my_renderer, sample: DatasetSample):
     return annotated_img1, annotated_img2, annotated_img3
 
 
-def main():
-    file_path = Path(__file__).resolve().parent
-    dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset_V0.0.2"
-    dataset_path = dataset_path.resolve()
+@click.command()
+@click.option(
+    "--dataset_path", type=click.Path(exists=True, path_type=Path), default=None
+)
+def main(dataset_path: Path):
+    if dataset_path is None:
+        file_path = Path(__file__).resolve().parent
+        dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset_V0.0.2"
+        dataset_path = dataset_path.resolve()
+    else:
+        dataset_path = Path(dataset_path)
+
     assert dataset_path.exists(), f"Path {dataset_path} does not exist"
 
     reader = BopDatasetReader(
@@ -122,7 +133,10 @@ def main():
         final = np.vstack((final1, final2))
 
         cv2.imshow("img", final)
-        cv2.waitKey(0)
+        k = cv2.waitKey(0)
+
+        if k == 27 or k == ord("q"):
+            break
 
     cv2.destroyAllWindows()
 

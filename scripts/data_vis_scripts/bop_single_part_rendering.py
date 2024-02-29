@@ -15,7 +15,7 @@ def main():
     dataset_path = dataset_path.resolve()
     needle_model_path = file_path / "../../SampleData/Models/Needle.ply"
     needle_model_path = needle_model_path.resolve()
-    toolpitchlink_model_path = file_path / "../../SampleData/Models/ToolPitchLink.ply"
+    toolpitchlink_model_path = file_path / "../../SampleData/Models/NewPSMToolPitchLink.ply"
     toolpitchlink_model_path = toolpitchlink_model_path.resolve()
 
     assert dataset_path.exists(), f"Path {dataset_path} does not exist"

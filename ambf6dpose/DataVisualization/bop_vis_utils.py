@@ -102,8 +102,8 @@ class ImageAnnotations:
 
         annotated_img = (
             0.5 * all_annotations.astype(np.float32)
-            + 0.5 * all_renders.astype(np.float32)
-            + 1.0 * self.img.astype(np.float32)
+            + 0.4 * all_renders.astype(np.float32)
+            + 0.6 * self.img.astype(np.float32)
         )
 
         annotated_img[annotated_img > 255] = 255
