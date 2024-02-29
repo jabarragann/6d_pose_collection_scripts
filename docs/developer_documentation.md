@@ -15,10 +15,15 @@ Meshes of new objects need to be reformatted to `.ply` format, expressed in mm, 
 
 The mesh can be exported to `.ply` format by selecting `File > Export Mesh As...` and selecting the `.ply` format.
 
-### Sample readers for DL applications
+### Processing of new PSM meshes
+
+Half of the vertices of the tool pitch link where decimated to reduce the file size. The decimation was done in Meshlab by selecting `Filters > Remeshing, Simplification and Reconstruction > Quadratic Edge Collapse Decimation`. Current file has 30,000 vertices. For more info read [here](https://gitbook.brown.edu/xromm/model-generation/xromm-cleaning-3d-models-with-meshlab) 
+
+## Sample readers for DL applications
 
 To load data into a neural network I would start from this script. `DatasetReader` behaves similarly to a torch `Dataset`, i.e., it is an iterable object and the data can be accessed via the `[]` operator. Make sure to check the `DatasetSample` and `DatasetReader` classes for more info.
 
+## Resources
 
 **Additional resources**
 * https://gist.github.com/SeungBack/e71eac0faa52088e3038395fef684494 
