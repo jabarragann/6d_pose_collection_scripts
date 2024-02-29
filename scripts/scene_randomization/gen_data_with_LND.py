@@ -1,6 +1,14 @@
+from pathlib import Path
 import random
+import sys
 import time
 from typing import List
+
+from click import Tuple
+import click
+from ambf6dpose.DataCollection.BOPSaver.BopSaver import BopSampleSaver
+from ambf6dpose.DataCollection.RosClients import SyncRosInterface
+from ambf6dpose.DataCollection.SimulatorDataProcessor import SimulatorDataProcessor
 from ambf6dpose.SimulationObjs.psm_lnd.PSM_LND import LND
 from dataclasses import dataclass, field
 from ambf_client import Client
@@ -105,8 +113,7 @@ class InstrumentPoseRandomizer:
         return random.uniform(0.0, 0.7)
 
 
-def replay_trajectory():
-
+def init_client() -> Client:
     client = Client("LND_Simulation")
     client.connect()
     time.sleep(0.5)
@@ -115,14 +122,28 @@ def replay_trajectory():
     world_handle.reset_bodies()
     time.sleep(0.5)
 
+    return client
+
+
+@click.command()
+@click.option("--total_steps", default=3, help="Total number of steps")
+@click.option("--step_size", default=0.017, help="Step size")
+def replay(total_steps, step_size):
+
+    client = init_client()
+
     psm1_lnd = LND("/new_psm1/", client)
     psm2_lnd = LND("/new_psm2/", client)
 
     initial_rpy_psm1 = psm1_lnd.base.get_pose()[3:]
     initial_rpy_psm2 = psm2_lnd.base.get_pose()[3:]
 
-    psm1_trajectory = PSM1Traj(initial_rpy_psm1, total_steps=3, step_size=0.017)
-    psm2_trajectory = PSM2Traj(initial_rpy_psm2, total_steps=3, step_size=0.017)
+    psm1_trajectory = PSM1Traj(
+        initial_rpy_psm1, total_steps=total_steps, step_size=step_size
+    )
+    psm2_trajectory = PSM2Traj(
+        initial_rpy_psm2, total_steps=total_steps, step_size=step_size
+    )
 
     psm1_randomizer = InstrumentPoseRandomizer(psm1_lnd)
     psm2_randomizer = InstrumentPoseRandomizer(psm2_lnd)
@@ -138,10 +159,73 @@ def replay_trajectory():
 
     time.sleep(0.5)
 
+def wait_for_data(client: SyncRosInterface):
+    try:
+        client.wait_for_data()
+    except TimeoutError:
+        print(
+            "ERROR: Timeout exception triggered. ROS message filter did not receive any data.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-def replay_and_record():
+@click.command()
+@click.option(
+    "--output_dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    required=True,
+    help="Output directory",
+)
+@click.option("--total_steps", default=3, help="Total number of steps")
+@click.option("--step_size", default=0.017, help="Step size")
+def replay_and_record(output_dir, total_steps, step_size):
+
+    output_dir = Path(output_dir)
+    saver: BopSampleSaver = BopSampleSaver(output_dir, scene_id=1)
+    ros_client = SyncRosInterface()
+    samples_generator = SimulatorDataProcessor(ros_client)
+
+    wait_for_data(ros_client) 
+
+    client = init_client()
+    psm1_lnd = LND("/new_psm1/", client)
+    psm2_lnd = LND("/new_psm2/", client)
+
+    initial_rpy_psm1 = psm1_lnd.base.get_pose()[3:]
+    initial_rpy_psm2 = psm2_lnd.base.get_pose()[3:]
+
+    psm1_trajectory = PSM1Traj(
+        initial_rpy_psm1, total_steps=total_steps, step_size=step_size
+    )
+    psm2_trajectory = PSM2Traj(
+        initial_rpy_psm2, total_steps=total_steps, step_size=step_size
+    )
+
+    psm1_randomizer = InstrumentPoseRandomizer(psm1_lnd)
+    psm2_randomizer = InstrumentPoseRandomizer(psm2_lnd)
+
+    with saver:
+        for t1, t2 in zip(psm1_trajectory, psm2_trajectory):
+            psm1_randomizer.update(t1)
+            psm2_randomizer.update(t2)
+
+            time.sleep(1.4)
+
+            data_sample = samples_generator.generate_dataset_sample() 
+            saver.save_sample(data_sample)
+
+    psm1_randomizer.reset()
+    psm2_randomizer.reset()
+
+    time.sleep(0.5)
+
+
+@click.group(help="Motion generation scripts")
+def main():
     pass
 
 
 if __name__ == "__main__":
-    replay_trajectory()
+    main.add_command(replay_and_record)
+    main.add_command(replay)
+    main()

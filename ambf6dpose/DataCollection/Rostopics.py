@@ -15,21 +15,22 @@ import ros_numpy
 
 
 ##############################
-# Poses configuration 
+# Poses configuration
 ##############################
+
 
 # All topics in RosTopics will stored with the sync recoder
 class RosTopics(Enum):
     CAMERA_L_STATE = ("/ambf/env/cameras/cameraL/State", CameraState)
     CAMERA_FRAME = ("/ambf/env/CameraFrame/State", RigidBodyState)
-    NEEDLE = ("/ambf/env/Needle/State", RigidBodyState)
+    NEEDLE = ("/ambf/env/Needle1/State", RigidBodyState)
     CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
     CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraL2/ImageData", Image)
     CAMERA_L_DEPTH = ("/ambf/env/cameras/cameraL/DepthData", PointCloud2)
-    PSM1_TOOL_PITCH_LINK = ("/ambf/env/psm1/toolpitchlink/State", RigidBodyState)
-    PSM2_TOOL_PITCH_LINK = ("/ambf/env/psm2/toolpitchlink/State", RigidBodyState)
-    PSM1_TOOL_YAW_LINK = ("/ambf/env/psm1/toolyawlink/State", RigidBodyState)
-    PSM2_TOOL_YAW_LINK = ("/ambf/env/psm2/toolyawlink/State", RigidBodyState)
+    PSM1_TOOL_PITCH_LINK = ("/ambf/env/new_psm1/tool_pitch_link/State", RigidBodyState)
+    PSM2_TOOL_PITCH_LINK = ("/ambf/env/new_psm2/tool_pitch_link/State", RigidBodyState)
+    PSM1_TOOL_YAW_LINK = ("/ambf/env/new_psm1/tool_yaw_link/State", RigidBodyState)
+    PSM2_TOOL_YAW_LINK = ("/ambf/env/new_psm2/tool_yaw_link/State", RigidBodyState)
 
 
 # Association between rostopics and the corresponding attribute in RosClients.RawSimulationData
@@ -67,9 +68,11 @@ def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
 
     return TopicsProcessingCb
 
+
 ##############################
-# Utility functions 
+# Utility functions
 ##############################
+
 
 def convert_units(frame: PyKDL.Frame):
     scaled_frame = PyKDL.Frame(frame.M, frame.p / SimToSI.linear_factor)
