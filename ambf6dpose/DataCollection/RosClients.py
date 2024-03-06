@@ -25,7 +25,7 @@ class RawSimulationData:
     needle_pose: np.ndarray
     camera_l_img: np.ndarray
     camera_l_seg_img: np.ndarray
-    camera_l_depth: np.ndarray
+    # camera_l_depth: np.ndarray
     psm1_toolpitchlink_pose: np.ndarray
     psm2_toolpitchlink_pose: np.ndarray
     psm1_toolyawlink_pose: np.ndarray

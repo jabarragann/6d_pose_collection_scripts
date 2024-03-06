@@ -89,7 +89,7 @@ class SimulatorDataProcessor:
         raw_data = self.simulation_client.get_data()
         img = raw_data.camera_l_img
         seg_img = raw_data.camera_l_seg_img
-        depth_img = raw_data.camera_l_depth
+        depth_img = np.zeros((300, 300))
 
         # Process object poses
         needle_in_caml_frame = self.get_needle_extrinsics(raw_data)
