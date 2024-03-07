@@ -159,15 +159,17 @@ def replay(total_steps, step_size):
 
     time.sleep(0.5)
 
+
 def wait_for_data(client: SyncRosInterface):
     try:
-        client.wait_for_data()
+        client.wait_for_data(12)
     except TimeoutError:
         print(
             "ERROR: Timeout exception triggered. ROS message filter did not receive any data.",
             file=sys.stderr,
         )
         sys.exit(1)
+
 
 @click.command()
 @click.option(
@@ -176,16 +178,17 @@ def wait_for_data(client: SyncRosInterface):
     required=True,
     help="Output directory",
 )
-@click.option("--total_steps", default=3, help="Total number of steps")
-@click.option("--step_size", default=0.017, help="Step size")
-def replay_and_record(output_dir, total_steps, step_size):
+@click.option("--scene_id", help="id given to current collection",required=True, type=int)
+@click.option("--total_steps", default=4, help="Total number of steps")
+@click.option("--step_size", default=0.012, help="Step size")
+def replay_and_record(output_dir, scene_id, total_steps, step_size):
 
     output_dir = Path(output_dir)
-    saver: BopSampleSaver = BopSampleSaver(output_dir, scene_id=1)
+    saver: BopSampleSaver = BopSampleSaver(output_dir, scene_id=scene_id)
     ros_client = SyncRosInterface()
     samples_generator = SimulatorDataProcessor(ros_client)
 
-    wait_for_data(ros_client) 
+    wait_for_data(ros_client)
 
     client = init_client()
     psm1_lnd = LND("/new_psm1/", client)
@@ -204,15 +207,18 @@ def replay_and_record(output_dir, total_steps, step_size):
     psm1_randomizer = InstrumentPoseRandomizer(psm1_lnd)
     psm2_randomizer = InstrumentPoseRandomizer(psm2_lnd)
 
+    count = 0
     with saver:
         for t1, t2 in zip(psm1_trajectory, psm2_trajectory):
             psm1_randomizer.update(t1)
             psm2_randomizer.update(t2)
 
             time.sleep(1.4)
-
-            data_sample = samples_generator.generate_dataset_sample() 
+            wait_for_data(samples_generator.simulation_client)
+            data_sample = samples_generator.generate_dataset_sample()
             saver.save_sample(data_sample)
+            print(f"Collected sample: {count}")
+            count += 1
 
     psm1_randomizer.reset()
     psm2_randomizer.reset()
