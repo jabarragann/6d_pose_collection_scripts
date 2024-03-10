@@ -104,7 +104,7 @@ class BopDatasetReader(AbstractReader):
         folder_names = get_folder_names()
         self.__dict_paths = defaultdict(dict)
         if len(self.scene_id_list) == 0:
-            self.scene_id_list = [p.name for p in natsorted(self.root.glob("*"))]
+            self.scene_id_list = [p.name for p in natsorted(self.root.glob("*")) if p.is_dir()]
         else:
             self.scene_id_list = [self.format_step(x) for x in self.scene_id_list]
 
