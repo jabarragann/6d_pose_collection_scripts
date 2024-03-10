@@ -102,7 +102,8 @@ def annotate_img(my_renderer: BOPRendererWrapper, sample: DatasetSample):
 @click.option(
     "--dataset_path", type=click.Path(exists=True, path_type=Path), default=None
 )
-def main(dataset_path: Path):
+@click.option("--dataset_split", type=str, default="test")
+def main(dataset_path: Path, dataset_split: str):
     if dataset_path is None:
         file_path = Path(__file__).resolve().parent
         dataset_path = file_path / "../../SampleData/BOP/needle_gripper_dataset_V0.0.2"
@@ -115,7 +116,7 @@ def main(dataset_path: Path):
     reader = BopDatasetReader(
         root=Path(dataset_path),
         scene_id_list=[],
-        dataset_split="test",
+        dataset_split=dataset_split,
         dataset_split_type="",
     )
 
