@@ -53,14 +53,16 @@ def get_camera_positions() -> List[List[float]]:
 
 
 @dataclass
-class RpyTrajectoryGenerator:
+class PoseTrajectoryGenerator:
     """
     Roll, pitch, yaw trajectory generator
     """
 
+    initial_pos: List[float]
     initial_rpy: List[float]
     trajectory: List[float] = field(init=False, default_factory=list)
-    step_size: float = 0.017  # 0.017 rad approx 1 deg
+    pos_step_size: float = 0.015  # 5mm
+    rot_step_size: float = 0.017  # 0.017 rad approx 1 deg
     total_steps: int = 5
 
     def __iter__(self):
@@ -75,9 +77,16 @@ class RpyTrajectoryGenerator:
         else:
             raise StopIteration
 
+    def gen_random_triplet(self, weight: float) -> List[float]:
+        return [
+            weight * random.gauss(mu=0.0, sigma=1.0),
+            weight * random.gauss(mu=0.0, sigma=1.0),
+            weight * random.gauss(mu=0.0, sigma=1.0),
+        ]
+
 
 @dataclass
-class PSM1Traj(RpyTrajectoryGenerator):
+class PSM1Traj(PoseTrajectoryGenerator):
 
     def __post_init__(self):
         self.generate_rpy_trajectory()
@@ -88,17 +97,21 @@ class PSM1Traj(RpyTrajectoryGenerator):
         for i in range(0, self.total_steps):
             for j in range(0, self.total_steps):
                 for k in range(0, self.total_steps):
+                    random_pos_offset = self.gen_random_triplet(self.pos_step_size)
                     self.trajectory.append(
                         [
-                            self.initial_rpy[0] - i * self.step_size,
-                            self.initial_rpy[1] - j * self.step_size,
-                            self.initial_rpy[2] - k * self.step_size,
+                            self.initial_pos[0] - random_pos_offset[0],
+                            self.initial_pos[1] - random_pos_offset[1],
+                            self.initial_pos[2] - random_pos_offset[2],
+                            self.initial_rpy[0] - i * self.rot_step_size,
+                            self.initial_rpy[1] - j * self.rot_step_size,
+                            self.initial_rpy[2] - k * self.rot_step_size,
                         ]
                     )
 
 
 @dataclass
-class PSM2Traj(RpyTrajectoryGenerator):
+class PSM2Traj(PoseTrajectoryGenerator):
 
     def __post_init__(self):
         self.generate_rpy_trajectory()
@@ -107,19 +120,23 @@ class PSM2Traj(RpyTrajectoryGenerator):
         for i in range(0, self.total_steps):
             for j in range(0, self.total_steps):
                 for k in range(0, self.total_steps):
+
+                    random_pos_offset = self.gen_random_triplet(self.pos_step_size)
                     self.trajectory.append(
                         [
-                            self.initial_rpy[0] + j * self.step_size,
-                            self.initial_rpy[1] + i * self.step_size,
-                            self.initial_rpy[2] + k * self.step_size,
+                            self.initial_pos[0] - random_pos_offset[0],
+                            self.initial_pos[1] - random_pos_offset[1],
+                            self.initial_pos[2] - random_pos_offset[2],
+                            self.initial_rpy[0] + j * self.rot_step_size,
+                            self.initial_rpy[1] + i * self.rot_step_size,
+                            self.initial_rpy[2] + k * self.rot_step_size,
                         ]
                     )
 
 
 @dataclass
-class InstrumentPoseRandomizer:
+class InstrumentJointRandomizer:
     lnd_handle: LND
-    initial_rpy: List[float] = field(init=False)
 
     def __post_init__(self):
 
@@ -127,7 +144,8 @@ class InstrumentPoseRandomizer:
         self.lnd_handle.set_jaw_angle(0.5)
         self.lnd_handle.servo_jp([0, 0, 0])
 
-    def update(self, new_rpy: List[float]) -> None:
+    def update(self, new_pos: List[float], new_rpy: List[float]) -> None:
+        self.lnd_handle.base.set_pos(new_pos[0], new_pos[1], new_pos[2])
         self.lnd_handle.base.set_rpy(new_rpy[0], new_rpy[1], new_rpy[2])
         time.sleep(0.2)
         self.lnd_handle.servo_jp(self.gen_random_joint_angles())
@@ -183,14 +201,17 @@ def wait_for_data(client: SyncRosInterface):
         )
         sys.exit(1)
 
-def extract_wanted_ecm_positions(wanted_positions:List[int]) -> List[List[float]]:
+
+def extract_wanted_ecm_positions(wanted_positions: List[int]) -> List[List[float]]:
 
     ecm_full_list = get_camera_positions()
 
     if len(wanted_positions) == 0:
         wanted_positions = list(range(0, len(ecm_full_list)))
 
-    assert all([i >= 0 for i in wanted_positions]), "ECM positions must be positive integers"
+    assert all(
+        [i >= 0 for i in wanted_positions]
+    ), "ECM positions must be positive integers"
     assert all(
         [i < len(ecm_full_list) for i in wanted_positions]
     ), f"Only {len(ecm_full_list)} ECM positions are available"
@@ -198,6 +219,7 @@ def extract_wanted_ecm_positions(wanted_positions:List[int]) -> List[List[float]
     ecm_jp_list = [ecm_full_list[i] for i in wanted_positions]
 
     return ecm_jp_list
+
 
 @dataclass
 class ExperimentManager:
@@ -216,18 +238,26 @@ class ExperimentManager:
         self.psm1_lnd = LND("/new_psm1/", self.client)
         self.psm2_lnd = LND("/new_psm2/", self.client)
 
+        initial_pos_psm1 = self.psm1_lnd.base.get_pose()[:3]
+        initial_pos_psm2 = self.psm2_lnd.base.get_pose()[:3]
         initial_rpy_psm1 = self.psm1_lnd.base.get_pose()[3:]
         initial_rpy_psm2 = self.psm2_lnd.base.get_pose()[3:]
 
         self.psm1_trajectory = PSM1Traj(
-            initial_rpy_psm1, total_steps=self.total_steps, step_size=self.step_size
+            initial_pos_psm1,
+            initial_rpy_psm1,
+            total_steps=self.total_steps,
+            rot_step_size=self.step_size,
         )
         self.psm2_trajectory = PSM2Traj(
-            initial_rpy_psm2, total_steps=self.total_steps, step_size=self.step_size
+            initial_pos_psm2,
+            initial_rpy_psm2,
+            total_steps=self.total_steps,
+            rot_step_size=self.step_size,
         )
 
-        self.psm1_randomizer = InstrumentPoseRandomizer(self.psm1_lnd)
-        self.psm2_randomizer = InstrumentPoseRandomizer(self.psm2_lnd)
+        self.psm1_randomizer = InstrumentJointRandomizer(self.psm1_lnd)
+        self.psm2_randomizer = InstrumentJointRandomizer(self.psm2_lnd)
 
     def get_psm_trajectories(self):
         return self.psm1_trajectory, self.psm2_trajectory
@@ -284,8 +314,10 @@ def replay_and_record(
             psm1_traj, psm2_traj = manager.get_psm_trajectories()
 
             for t1, t2 in zip(psm1_traj, psm2_traj):
-                manager.psm1_randomizer.update(t1)
-                manager.psm2_randomizer.update(t2)
+                t1_pos, t1_rpy = t1[:3], t1[3:]
+                t2_pos, t2_rpy = t2[:3], t2[3:]
+                manager.psm1_randomizer.update(t1_pos, t1_rpy)
+                manager.psm2_randomizer.update(t2_pos, t2_rpy)
 
                 time.sleep(1.4)
                 wait_for_data(samples_generator.simulation_client)
