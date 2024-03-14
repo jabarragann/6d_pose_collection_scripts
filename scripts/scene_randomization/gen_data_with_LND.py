@@ -193,7 +193,7 @@ def init_client() -> Client:
 
 def wait_for_data(client: SyncRosInterface):
     try:
-        client.wait_for_data(12)
+        client.wait_for_data(28)
     except TimeoutError:
         print(
             "ERROR: Timeout exception triggered. ROS message filter did not receive any data.",
@@ -233,6 +233,20 @@ class ExperimentManager:
         self.cam_frame_handle = ECM(self.sim_manager, "CameraFrame")
 
         self.init_psm_randomizers()
+        self.init_light_handle()
+
+    def init_light_handle(self, namespace: str = "/lights/"):
+        obj_name = namespace + "light2"
+        self.light_handle = self.client.get_obj_handle(obj_name)
+
+        if self.light_handle is None:
+            raise ValueError("Light obj ({obj_name}) not found")
+
+        self.change_z_coord_of_light(0)
+
+    def change_z_coord_of_light(self, z: float):
+        light_pos = self.light_handle.get_pos()
+        self.light_handle.set_pos(light_pos.x, light_pos.y, z)
 
     def init_psm_randomizers(self):
         self.psm1_lnd = LND("/new_psm1/", self.client)
@@ -265,6 +279,7 @@ class ExperimentManager:
     def reset_psm(self):
         self.psm1_randomizer.reset()
         self.psm2_randomizer.reset()
+        self.change_z_coord_of_light(0)
 
 
 @click.command("replay-and-record", context_settings={"show_default": True})
@@ -312,6 +327,9 @@ def replay_and_record(
         for camera_pos_idx, cam_jp in enumerate(camera_positions):
             manager.cam_frame_handle.servo_jp(cam_jp)
             psm1_traj, psm2_traj = manager.get_psm_trajectories()
+
+            # z = random.uniform(0, 1) * 0.5
+            # manager.change_z_coord_of_light(z) * 0.5
 
             for t1, t2 in zip(psm1_traj, psm2_traj):
                 t1_pos, t1_rpy = t1[:3], t1[3:]
