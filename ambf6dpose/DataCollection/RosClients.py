@@ -30,6 +30,7 @@ class RawSimulationData:
     psm2_toolpitchlink_pose: np.ndarray
     psm1_toolyawlink_pose: np.ndarray
     psm2_toolyawlink_pose: np.ndarray
+    psm1_baselink_pose: np.ndarray # ------------------added by Shuang
 
     def __post_init__(self):
         if self.has_none_members():

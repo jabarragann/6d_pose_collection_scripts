@@ -191,6 +191,9 @@ class BopDatasetReader(AbstractReader):
             psm2_toolyawlink_pose=self.get_extrinsic_matrix(
                 RigidObjectsIds.psm2_toolyawlink_pose.value, scene_id, img_name
             ),
+            psm1_baselink_pose=self.get_extrinsic_matrix( # ---------------------------added by Shuang
+                RigidObjectsIds.psm1_baselink_pose.value, scene_id, img_name
+            ),
             intrinsic_matrix=self.get_camera_intrinsics(scene_id, img_name),
         )
         return sample

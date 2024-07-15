@@ -22,7 +22,7 @@ import ros_numpy
 class RosTopics(Enum):
     CAMERA_L_STATE = ("/ambf/env/cameras/cameraL/State", CameraState)
     CAMERA_FRAME = ("/ambf/env/CameraFrame/State", RigidBodyState)
-    NEEDLE = ("/ambf/env/Needle/State", RigidBodyState)
+    NEEDLE = ("/ambf/env/Needle_001_001/State", RigidBodyState)
     CAMERA_L_IMAGE = ("/ambf/env/cameras/cameraL/ImageData", Image)
     CAMERA_L_SEG_IMAGE = ("/ambf/env/cameras/cameraR/ImageData", Image)
     # CAMERA_L_DEPTH = ("/ambf/env/cameras/cameraL/DepthData", PointCloud2)
@@ -30,6 +30,7 @@ class RosTopics(Enum):
     PSM2_TOOL_PITCH_LINK = ("/ambf/env/psm2/toolpitchlink/State", RigidBodyState)
     PSM1_TOOL_YAW_LINK = ("/ambf/env/psm1/toolyawlink/State", RigidBodyState)
     PSM2_TOOL_YAW_LINK = ("/ambf/env/psm2/toolyawlink/State", RigidBodyState)
+    PSM1_BASE_LINK = ("/ambf/env/psm1/baselink/State", RigidBodyState) # --------------------added by Shuang
 
 
 # Association between rostopics and the corresponding attribute in RosClients.RawSimulationData
@@ -45,6 +46,7 @@ topic_to_attr_dict = {
     RosTopics.PSM2_TOOL_PITCH_LINK: "psm2_toolpitchlink_pose",
     RosTopics.PSM1_TOOL_YAW_LINK: "psm1_toolyawlink_pose",
     RosTopics.PSM2_TOOL_YAW_LINK: "psm2_toolyawlink_pose",
+    RosTopics.PSM1_BASE_LINK: "psm1_baselink_pose", # --------------------added by Shuang
 }
 
 
@@ -63,6 +65,7 @@ def get_topics_processing_cb() -> Dict[RosTopics, Callable[[Any]]]:
         RosTopics.PSM2_TOOL_PITCH_LINK: processing_pose_data,
         RosTopics.PSM1_TOOL_YAW_LINK: processing_pose_data,
         RosTopics.PSM2_TOOL_YAW_LINK: processing_pose_data,
+        RosTopics.PSM1_BASE_LINK: processing_pose_data, # --------------------added by Shuang
     }
 
     return TopicsProcessingCb

@@ -105,6 +105,9 @@ class SimulatorDataProcessor:
         psm2_toolyawlink_in_caml_frame = self.get_tool_pose(
             raw_data, raw_data.psm2_toolyawlink_pose
         )
+        psm1_toolbaselink_in_caml_frame = self.get_tool_pose( # -----------------added by Shuang
+            raw_data, raw_data.psm1_baselink_pose
+        )
 
         # Get intrinsics
         K = self.get_intrinsics()
@@ -118,6 +121,7 @@ class SimulatorDataProcessor:
             psm2_toolpitchlink_in_caml_frame,
             psm1_toolyawlink_in_caml_frame,
             psm2_toolyawlink_in_caml_frame,
+            psm1_toolbaselink_in_caml_frame, # -----------------added by Shuang
             K,
         )
 
